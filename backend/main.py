@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from database import engine
 
 app = FastAPI()
 @app.get("/")
@@ -6,3 +7,9 @@ app = FastAPI()
 def root():
     return {"mensaje": "YvexIQ API funcionando"}
 
+
+try:
+    with engine.connect() as conn:
+        print("Conexion exitosa a la base de datos")
+except Exception as e:
+    print("Error al conectar a la base de datos:", e)
