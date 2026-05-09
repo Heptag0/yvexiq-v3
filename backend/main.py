@@ -6,6 +6,7 @@ from models import Usuario
 from schemas import UsuarioCreate, UsuarioLogin
 from database import get_db
 import auth
+from llm import generate_sql
 
 
 # Crear tabla en la base de datos
@@ -46,7 +47,9 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     access_token = auth.create_access_token(data={"sub": form_data.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-
-@app.get("/me")
-def get_me(current_user: Usuario = Depends(auth.get_current_user)):
-    return {"email": current_user.email}
+@app.post("/generar_sql")
+def test_sql():
+    schema = "CREATE TABLE clientes (id SERIAL PRIMARY KEY, nombre VARCHAR(255), apellido VARCHAR(255), email VARCHAR(255)); " \
+    "CREATE TABLE ventas (id SERIAL PRIMARY KEY, id_cliente INT, fecha DATE, monto DECIMAL(10,2)); "
+    sql = generate_sql("¿Cuantos clientes hay?", schema)
+    return {"sql": sql}
