@@ -3,8 +3,13 @@ from dotenv import load_dotenv
 import jwt
 import bcrypt
 from datetime import datetime, timedelta
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+from database import get_db
+from models import Usuario
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -36,4 +41,14 @@ def verify_access_token(token: str):
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Token invalido o expirado")
 
-
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    payload = verify_access_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Token invalido o expirado")
+    email = payload.get("sub")
+    if email is None:
+        raise HTTPException(status_code=401, detail="Token invalido o expirado")
+    user = db.query(Usuario).filter(Usuario.email == email).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return user

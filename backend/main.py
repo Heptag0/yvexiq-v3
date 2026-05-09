@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import engine, Base
 from models import Usuario
-from schemas import UsuarioCreate
+from schemas import UsuarioCreate, UsuarioLogin
 from database import get_db
 import auth
+
 
 # Crear tabla en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -30,3 +32,21 @@ def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     return {"message": "Usuario registrado exitosamente"}
+
+
+
+
+@app.post("/login")
+def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    db_user = db.query(Usuario).filter(Usuario.email == form_data.username).first()
+    if db_user is None:
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    if not auth.verify_password(form_data.password, db_user.password):
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    access_token = auth.create_access_token(data={"sub": form_data.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/me")
+def get_me(current_user: Usuario = Depends(auth.get_current_user)):
+    return {"email": current_user.email}
