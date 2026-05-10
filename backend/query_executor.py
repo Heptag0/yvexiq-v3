@@ -8,4 +8,4 @@ def ejecutar_query(sql, ruta_archivo):
     else:
         df = pd.read_excel(ruta_archivo)
     resultado = ps.sqldf(sql, {"nombre_tabla": df})
-    return resultado.to_dict(orient="records")
+    return resultado.fillna("").to_dict(orient="records")

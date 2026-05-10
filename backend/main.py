@@ -8,6 +8,7 @@ from database import get_db
 import auth
 from llm import generate_sql
 from query_executor import ejecutar_query
+from schema_detector import detectar_schema
 
 # Crear tabla en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -54,6 +55,8 @@ def test_sql():
 @app.post("/test_executor")
 def test_executor():
     ruta_archivo = 'C:/Users/hepta/Desktop/eleventa datos/csv export/VENTATICKETS_ARTICULOS_202604150119.csv'
-    schema ="Tabla: nombre_tabla Columnas: ID, TICKET_ID, PRODUCTO_CODIGO, PRODUCTO_NOMBRE, CANTIDAD, GANANCIA, DEPARTAMENTO_ID, PAGADO_EN, USA_MAYOREO, PORCENTAJE_DESCUENTO, IMPUESTOS_USADOS, IMPUESTO_UNITARIO, PRECIO_USADO, CANTIDAD_DEVUELTA, FUE_DEVUELTO, PORCENTAJE_PAGADO, PRECIO_FINAL, AGREGADO_EN, TOTAL_ARTICULO"
-    sql = generate_sql("Dame los primeros 5 registros de la tabla", schema)
+    schema = detectar_schema(ruta_archivo)
+    sql = generate_sql("Cuál es el importe total vendido por mes y cuántas ventas únicas hubo en cada mes, ordenado cronológicamente?", schema)
     return ejecutar_query(sql, ruta_archivo)
+
+
