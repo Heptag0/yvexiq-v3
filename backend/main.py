@@ -7,7 +7,7 @@ from schemas import UsuarioCreate, UsuarioLogin
 from database import get_db
 import auth
 from llm import generate_sql
-
+from query_executor import ejecutar_query
 
 # Crear tabla en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -34,9 +34,6 @@ def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Usuario registrado exitosamente"}
 
-
-
-
 @app.post("/login")
 def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     db_user = db.query(Usuario).filter(Usuario.email == form_data.username).first()
@@ -53,3 +50,10 @@ def test_sql():
     "CREATE TABLE ventas (id SERIAL PRIMARY KEY, id_cliente INT, fecha DATE, monto DECIMAL(10,2)); "
     sql = generate_sql("¿Cuantos clientes hay?", schema)
     return {"sql": sql}
+
+@app.post("/test_executor")
+def test_executor():
+    ruta_archivo = 'C:/Users/hepta/Desktop/eleventa datos/csv export/VENTATICKETS_ARTICULOS_202604150119.csv'
+    schema ="Tabla: nombre_tabla Columnas: ID, TICKET_ID, PRODUCTO_CODIGO, PRODUCTO_NOMBRE, CANTIDAD, GANANCIA, DEPARTAMENTO_ID, PAGADO_EN, USA_MAYOREO, PORCENTAJE_DESCUENTO, IMPUESTOS_USADOS, IMPUESTO_UNITARIO, PRECIO_USADO, CANTIDAD_DEVUELTA, FUE_DEVUELTO, PORCENTAJE_PAGADO, PRECIO_FINAL, AGREGADO_EN, TOTAL_ARTICULO"
+    sql = generate_sql("Dame los primeros 5 registros de la tabla", schema)
+    return ejecutar_query(sql, ruta_archivo)
