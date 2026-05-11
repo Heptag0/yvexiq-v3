@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import engine, Base
-from models import Usuario
-from schemas import UsuarioCreate, UsuarioLogin
+from models import Usuario, Conexion
+from schemas import UsuarioCreate, UsuarioLogin, Consulta
 from database import get_db
 import auth
 from llm import generate_sql
@@ -58,5 +58,21 @@ def test_executor():
     schema = detectar_schema(ruta_archivo)
     sql = generate_sql("Cuál es el importe total vendido por mes y cuántas ventas únicas hubo en cada mes, ordenado cronológicamente?", schema)
     return ejecutar_query(sql, ruta_archivo)
+
+@app.post("/consultar")
+def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    conexion_id = consulta.conexion_id
+    db_conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+    if db_conexion is None:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada")
+    if db_conexion.usuario_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+    ruta_archivo = db_conexion.ruta_archivo
+    schema = detectar_schema(ruta_archivo)
+    sql = generate_sql(consulta.pregunta, schema)
+    return ejecutar_query(sql, ruta_archivo)
+    
+
+    
 
 

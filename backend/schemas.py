@@ -7,3 +7,7 @@ class UsuarioCreate(BaseModel):
 class UsuarioLogin(BaseModel):
     email: str
     password: str
+
+class Consulta(BaseModel):
+    pregunta: str
+    conexion_id: int
