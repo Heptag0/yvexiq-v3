@@ -19,3 +19,6 @@ def puntuar_archivos(archivos):
             puntuacion += 15
         resultados.append((puntuacion, ruta))
     return sorted(resultados, reverse=True)
+
+
+ 

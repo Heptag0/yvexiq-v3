@@ -24,3 +24,8 @@ while respuesta.lower() == "ver mas":
 seleccion = int(respuesta)
 archivo_principal = resultados[seleccion - 1][1]
 print(f"\nSeleccionado: {archivo_principal}")
+
+from table_analyzer import analizar_tablas
+
+tablas_relevantes = analizar_tablas(archivo_principal)
+print(f"\nTablas relevantes detectadas por Claude:\n{tablas_relevantes}")
