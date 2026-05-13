@@ -6,7 +6,7 @@ from models import Usuario, Conexion
 from schemas import UsuarioCreate, UsuarioLogin, Consulta
 from database import get_db
 import auth
-from llm import generate_sql, generate_explanation
+from llm import generate_sql, generate_explanation, generate_chart
 from query_executor import ejecutar_query, ejecutar_query_sync
 from schema_detector import detectar_schema, detectar_schema_sync
 import os
@@ -73,9 +73,11 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     sql = generate_sql(consulta.pregunta, schema, db_conexion.tipo_bd)
     resultados = ejecutar_query_sync(sql, carpeta)
     respuesta_natural = generate_explanation(consulta.pregunta, sql, resultados)
+    graficos = generate_chart(consulta.pregunta, resultados)
     return {
         "resultados": resultados,
-        "explicacion": respuesta_natural
+        "explicacion": respuesta_natural,
+        "graficos": graficos
     }
 
 @app.post("/sync")
