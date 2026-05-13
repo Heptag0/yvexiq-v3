@@ -41,3 +41,12 @@ def generate_chart(pregunta, resultados):
     respuesta = mensaje.content[0].text
     respuesta = respuesta.replace("```json", "").replace("```", "").strip()
     return respuesta
+
+def generate_fallback(pregunta, schema, error):
+    mensaje = client.messages.create(
+        model=model,
+        max_tokens=1024,
+        messages=[{"role": "user",
+                   "content": f"Eres un asistente profesional con experiencia en consultas SQL y trato al cliente. El usuario ha preguntado: {pregunta}, y al no poder ser respondida se ha generado el siguiente error: {error}. A partir del schema de la base de datos del usuario: {schema}, genera una respuesta profesional que explique el error al usuario y apartir de ese schema genera dos preguntas que si puedan ser respondidas como sugerencias."}]
+    )
+    return mensaje.content[0].text

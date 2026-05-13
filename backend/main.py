@@ -6,7 +6,7 @@ from models import Usuario, Conexion
 from schemas import UsuarioCreate, UsuarioLogin, Consulta
 from database import get_db
 import auth
-from llm import generate_sql, generate_explanation, generate_chart
+from llm import generate_sql, generate_explanation, generate_chart, generate_fallback
 from query_executor import ejecutar_query, ejecutar_query_sync
 from schema_detector import detectar_schema, detectar_schema_sync
 import os
@@ -53,13 +53,6 @@ def test_sql():
     sql = generate_sql("¿Cuantos clientes hay?", schema)
     return {"sql": sql}
 
-@app.post("/test_executor")
-def test_executor():
-    ruta_archivo = 'C:/Users/hepta/Desktop/eleventa datos/csv export/VENTATICKETS_ARTICULOS_202604150119.csv'
-    schema = detectar_schema(ruta_archivo)
-    sql = generate_sql("Cuál es el importe total vendido por mes y cuántas ventas únicas hubo en cada mes, ordenado cronológicamente?", schema)
-    return ejecutar_query(sql, ruta_archivo)
-
 @app.post("/consultar")
 def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
     conexion_id = consulta.conexion_id
@@ -71,14 +64,18 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     carpeta = f"data/{current_user.id}/{conexion_id}"
     schema = detectar_schema_sync(carpeta)
     sql = generate_sql(consulta.pregunta, schema, db_conexion.tipo_bd)
-    resultados = ejecutar_query_sync(sql, carpeta)
-    respuesta_natural = generate_explanation(consulta.pregunta, sql, resultados)
-    graficos = generate_chart(consulta.pregunta, resultados)
-    return {
+    try:
+        resultados = ejecutar_query_sync(sql, carpeta)
+        respuesta_natural = generate_explanation(consulta.pregunta, sql, resultados)
+        graficos = generate_chart(consulta.pregunta, resultados)
+        return {
         "resultados": resultados,
         "explicacion": respuesta_natural,
         "graficos": graficos
-    }
+        }
+    except Exception as e:
+        fallback = generate_fallback(consulta.pregunta, schema, str(e))
+        return {"error": fallback}
 
 @app.post("/sync")
 def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db), archivo: UploadFile = File(...)):
