@@ -19,3 +19,14 @@ def generate_sql(question, schema, tipo_db="csv"):
         ]
     )
     return mensaje.content[0].text
+
+
+
+def generate_explanation(pregunta, sql, resultados):
+    mensaje = client.messages.create(
+        model=model,
+        max_tokens=1024,
+        messages=[{"role": "user",
+               "content": f"Eres un experto analista en negocios, el usuario ha preguntado: {pregunta}, y se ha generado este SQL: {sql}, dando estos resultados: {resultados}. Tu mision como experto es explicar de forma clara, concisa y precisa los datos al dueño del negocio, sin usar lenguaje tecnico."}]
+    )
+    return mensaje.content[0].text

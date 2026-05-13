@@ -6,7 +6,7 @@ from models import Usuario, Conexion
 from schemas import UsuarioCreate, UsuarioLogin, Consulta
 from database import get_db
 import auth
-from llm import generate_sql
+from llm import generate_sql, generate_explanation
 from query_executor import ejecutar_query, ejecutar_query_sync
 from schema_detector import detectar_schema, detectar_schema_sync
 import os
@@ -71,7 +71,12 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     carpeta = f"data/{current_user.id}/{conexion_id}"
     schema = detectar_schema_sync(carpeta)
     sql = generate_sql(consulta.pregunta, schema, db_conexion.tipo_bd)
-    return ejecutar_query_sync(sql, carpeta)
+    resultados = ejecutar_query_sync(sql, carpeta)
+    respuesta_natural = generate_explanation(consulta.pregunta, sql, resultados)
+    return {
+        "resultados": resultados,
+        "explicacion": respuesta_natural
+    }
 
 @app.post("/sync")
 def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db), archivo: UploadFile = File(...)):
