@@ -7,8 +7,8 @@ from schemas import UsuarioCreate, UsuarioLogin, Consulta
 from database import get_db
 import auth
 from llm import generate_sql
-from query_executor import ejecutar_query
-from schema_detector import detectar_schema
+from query_executor import ejecutar_query, ejecutar_query_sync
+from schema_detector import detectar_schema, detectar_schema_sync
 import os
 
 # Crear tabla en la base de datos
@@ -68,10 +68,10 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
         raise HTTPException(status_code=404, detail="Conexion no encontrada")
     if db_conexion.usuario_id != current_user.id:
         raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
-    ruta_archivo = db_conexion.ruta_archivo
-    schema = detectar_schema(ruta_archivo)
+    carpeta = f"data/{current_user.id}/{conexion_id}"
+    schema = detectar_schema_sync(carpeta)
     sql = generate_sql(consulta.pregunta, schema, db_conexion.tipo_bd)
-    return ejecutar_query(sql, ruta_archivo)
+    return ejecutar_query_sync(sql, carpeta)
 
 @app.post("/sync")
 def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db), archivo: UploadFile = File(...)):

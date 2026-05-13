@@ -34,10 +34,9 @@ from extractor import extraer_tablas
 extraer_tablas(archivo_principal, tablas_relevantes)
 print("Tablas extraídas correctamente")
 
-from sync import sincronizar_todo
-
-sincronizar_todo(
-    token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGl2ZXhpcS5jb20iLCJleHAiOjE3Nzg2NDQ0NzZ9.9_KzJN4S3WcKTfFvijSHt4TeO9OAELDTeqMxLdPCXTI",
-    url="http://127.0.0.1:8000",
-    conexion_id=1
-)
+#from sync import sincronizar_todo
+#
+#sincronizar_todo(
+#    token="token",
+#    url="http://127.0.0.1:8000",
+#    conexion_id=1)

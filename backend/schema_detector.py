@@ -1,6 +1,7 @@
 import pandas as pd
 import pandasql as ps
 import fdb
+import os
 
 def detectar_schema(ruta_archivo):
     if ruta_archivo.lower().endswith(".csv"):
@@ -34,3 +35,17 @@ def detectar_schema(ruta_archivo):
         ejemplos = df[columna].dropna().unique()[:3].tolist()
         schema += f"- {columna} ({tipo}, ejemplos: {ejemplos})\n"
     return schema
+
+
+def detectar_schema_sync(carpeta):
+    schema = ""
+    for archivo in os.listdir(carpeta):
+        if archivo.lower().endswith(".csv"):
+            df = pd.read_csv(os.path.join(carpeta, archivo))
+            nombre_tabla = archivo.replace(".csv", "")
+            schema += f"Tabla: {nombre_tabla}\nColumnas:\n"
+            for columna in df.columns:
+                ejemplos = df[columna].dropna().unique()[:3].tolist()
+                schema += f"- {columna} (ejemplos: {ejemplos})\n"
+    return schema
+        
