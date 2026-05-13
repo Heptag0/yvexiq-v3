@@ -29,3 +29,7 @@ from table_analyzer import analizar_tablas
 
 tablas_relevantes = analizar_tablas(archivo_principal)
 print(f"\nTablas relevantes detectadas por Claude:\n{tablas_relevantes}")
+
+from extractor import extraer_tablas
+extraer_tablas(archivo_principal, tablas_relevantes)
+print("Tablas extraídas correctamente")
