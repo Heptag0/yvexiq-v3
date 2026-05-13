@@ -69,7 +69,7 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
         raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
     ruta_archivo = db_conexion.ruta_archivo
     schema = detectar_schema(ruta_archivo)
-    sql = generate_sql(consulta.pregunta, schema)
+    sql = generate_sql(consulta.pregunta, schema, db_conexion.tipo_bd)
     return ejecutar_query(sql, ruta_archivo)
     
 

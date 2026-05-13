@@ -38,7 +38,7 @@ def verify_access_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.JWTError:
+    except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Token invalido o expirado")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
