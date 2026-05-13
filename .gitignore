@@ -13,3 +13,5 @@ env/
 .DS_Store
 Thumbs.db
 uvicorn
+agent/temp/
+backend/data/

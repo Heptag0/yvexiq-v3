@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import engine, Base
@@ -9,6 +9,7 @@ import auth
 from llm import generate_sql
 from query_executor import ejecutar_query
 from schema_detector import detectar_schema
+import os
 
 # Crear tabla en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -71,6 +72,23 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     schema = detectar_schema(ruta_archivo)
     sql = generate_sql(consulta.pregunta, schema, db_conexion.tipo_bd)
     return ejecutar_query(sql, ruta_archivo)
+
+@app.post("/sync")
+def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db), archivo: UploadFile = File(...)):
+    db_conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+    if db_conexion is None:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada")
+    if db_conexion.usuario_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+    contenido = archivo.file.read()
+    carpeta = f"data/{current_user.id}/{conexion_id}"
+    os.makedirs(carpeta, exist_ok=True)
+    ruta_destino = os.path.join(carpeta, archivo.filename)
+    with open(ruta_destino, "wb") as f:
+        f.write(contenido)
+    return {"message": "Archivo sincronizado exitosamente"}
+
+
     
 
     
