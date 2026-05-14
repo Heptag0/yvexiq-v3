@@ -11,3 +11,19 @@ class UsuarioLogin(BaseModel):
 class Consulta(BaseModel):
     pregunta: str
     conexion_id: int
+
+class ConexionCreate(BaseModel):
+    tipo_bd: str
+    nombre: str
+    ruta_archivo: str
+
+class ConexionResponse(BaseModel):
+    id: int
+    nombre: str
+    tipo_bd: str
+    ruta_archivo: str
+    usuario_id: int
+
+    class Config:
+        from_attributes = True
+

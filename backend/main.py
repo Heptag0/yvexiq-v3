@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import engine, Base
 from models import Usuario, Conexion
-from schemas import UsuarioCreate, UsuarioLogin, Consulta
+from schemas import UsuarioCreate, UsuarioLogin, Consulta, ConexionCreate, ConexionResponse
 from database import get_db
 import auth
 from llm import generate_sql, generate_explanation, generate_chart, generate_fallback
@@ -15,6 +15,16 @@ import os
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 @app.get("/")
 def root():
     return {"mensaje": "YvexIQ API funcionando"}
@@ -92,8 +102,17 @@ def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_curre
         f.write(contenido)
     return {"message": "Archivo sincronizado exitosamente"}
 
+@app.get("/conexiones", response_model=list[ConexionResponse])
+def listar_conexiones(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    conexiones = db.query(Conexion).filter(Conexion.usuario_id == current_user.id).all()
+    return conexiones
 
-    
+@app.post("/conexiones", response_model=ConexionResponse)   
+def crear_conexion(conexion: ConexionCreate, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    db_conexion = Conexion(**conexion.dict(), usuario_id=current_user.id)
+    db.add(db_conexion)
+    db.commit()
+    return db_conexion
 
     
 
