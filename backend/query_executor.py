@@ -8,11 +8,12 @@ def ejecutar_query(sql, ruta_archivo):
         df = pd.read_csv(ruta_archivo)
     elif ruta_archivo.lower().endswith(".fdb"):
         conn = fdb.connect(
-        host='localhost',
-        database=ruta_archivo,
-        user='SYSDBA',
-        password='masterkey'
+            host=os.getenv('FIREBIRD_HOST'),
+            database=ruta_archivo,
+            user=os.getenv('FIREBIRD_USER'),
+            password=os.getenv('FIREBIRD_PASSWORD')
         )
+
         df = pd.read_sql(sql, conn)
         return df.fillna("").to_dict(orient="records")
     else:

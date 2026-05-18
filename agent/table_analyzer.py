@@ -11,11 +11,12 @@ model = "claude-haiku-4-5"
 def analizar_tablas(ruta_archivo):
     if ruta_archivo.lower().endswith(".fdb"):
         conn = fdb.connect(
-            host='localhost',
+            host=os.getenv('FIREBIRD_HOST'),
             database=ruta_archivo,
-            user='SYSDBA',
-            password='masterkey'
-            )
+            user=os.getenv('FIREBIRD_USER'),
+            password=os.getenv('FIREBIRD_PASSWORD')
+        )
+
         tablas = pd.read_sql("SELECT RDB$RELATION_NAME FROM RDB$RELATIONS WHERE RDB$SYSTEM_FLAG = 0 AND RDB$VIEW_BLR IS NULL", conn)
         schema = "Tablas disponibles:\n"
         for tabla in tablas["RDB$RELATION_NAME"]:

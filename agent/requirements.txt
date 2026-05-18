@@ -1,0 +1,8 @@
+fdb
+pandas
+anthropic
+python-dotenv
+requests
+PySide6
+schedule
+cryptography

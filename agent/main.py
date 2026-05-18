@@ -1,42 +1,77 @@
-from detector import buscar_archivos
-from analyzer import puntuar_archivos
+import sys
+import os
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QFont
+from core.auth import esta_autenticado
+from core.config import cargar_config
+from ui.login_window import LoginWindow
+from ui.onboarding import OnboardingWindow
+from ui.main_window import MainWindow
 
-archivos = buscar_archivos()
-resultados = puntuar_archivos(archivos)
+class YvexIQApp:
+    def __init__(self):
+        self.app = QApplication(sys.argv)
+        from PySide6.QtCore import Qt
+        self.app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
+        self.app.setFont(QFont("Tahoma", 10, QFont.Weight.Normal))
+        self.app.setQuitOnLastWindowClosed(False)
+        self.ventana = None
+        self._onboarding_temporal = None
 
-print("Archivos encontrados ordenados por relevancia:")
-for i, (puntuacion, ruta) in enumerate(resultados[:5], 1):
-    print(f"{i}. [{puntuacion} pts] {ruta}")
+    def mostrar_login(self):
+        self.ventana = LoginWindow()
+        self.ventana.login_exitoso.connect(self.post_login)
+        self.ventana.show()
 
-mostrados = 5
-respuesta = input("\n¿Cuál es tu base de datos principal? (número) o escribe 'ver mas': ")
+    def post_login(self):
+        self.ventana.close()
+        config = cargar_config()
+        if config.get("conexion_id") and config.get("carpeta_csvs"):
+            self.mostrar_principal()
+        else:
+            self.mostrar_onboarding()
 
-while respuesta.lower() == "ver mas":
-    for i, (puntuacion, ruta) in enumerate(resultados[mostrados:mostrados+5], mostrados+1):
-        print(f"{i}. [{puntuacion} pts] {ruta}")
-    mostrados += 5
-    respuesta = input("\n¿Cuál es tu base de datos principal? (número) o escribe 'ver mas': ")
-    if mostrados >= len(resultados):
-        print("No hay más archivos disponibles.")
-        respuesta = input("Ingresa el número de tu selección: ")
-        break
+    def mostrar_onboarding(self):
+        if isinstance(self.ventana, MainWindow):
+            self.ventana.hide()
+        ventana_onboarding = OnboardingWindow()
+        ventana_onboarding.configuracion_lista.connect(self._volver_a_principal)
+        ventana_onboarding.show()
+        self._onboarding_temporal = ventana_onboarding
 
-seleccion = int(respuesta)
-archivo_principal = resultados[seleccion - 1][1]
-print(f"\nSeleccionado: {archivo_principal}")
+    def _volver_a_principal(self):
+        self._onboarding_temporal.close()
+        if isinstance(self.ventana, MainWindow):
+            self.ventana._cargar_conexiones()
+            self.ventana.show()
+        else:
+            self.mostrar_principal()
 
-from table_analyzer import analizar_tablas
+    def mostrar_principal(self):
+        if isinstance(self.ventana, OnboardingWindow):
+            self.ventana.close()
+        self.ventana = MainWindow()
+        self.ventana.cerrar_sesion.connect(self.mostrar_login)
+        self.ventana.ir_a_onboarding.connect(self.mostrar_onboarding)
+        self.ventana.show()
 
-tablas_relevantes = analizar_tablas(archivo_principal)
-print(f"\nTablas relevantes detectadas por Claude:\n{tablas_relevantes}")
+    def ejecutar(self):
+        if esta_autenticado():
+            config = cargar_config()
+            if config.get("conexion_id") and config.get("carpeta_csvs"):
+                self.mostrar_principal()
+            else:
+                self.mostrar_onboarding()
+        else:
+            self.mostrar_login()
 
-from extractor import extraer_tablas
-extraer_tablas(archivo_principal, tablas_relevantes)
-print("Tablas extraídas correctamente")
+        sys.exit(self.app.exec())
 
-#from sync import sincronizar_todo
-#
-#sincronizar_todo(
-#    token="token",
-#    url="http://127.0.0.1:8000",
-#    conexion_id=1)
+if __name__ == "__main__":
+    try:
+        yvex = YvexIQApp()
+        yvex.ejecutar()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        input("Presiona Enter para cerrar...")

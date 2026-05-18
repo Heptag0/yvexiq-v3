@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Request
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import engine, Base
-from models import Usuario, Conexion
+from models import Usuario, Conexion, Historial
 from schemas import UsuarioCreate, UsuarioLogin, Consulta, ConexionCreate, ConexionResponse
 from database import get_db
 import auth
@@ -10,6 +11,8 @@ from llm import generate_sql, generate_explanation, generate_chart, generate_fal
 from query_executor import ejecutar_query, ejecutar_query_sync
 from schema_detector import detectar_schema, detectar_schema_sync
 import os
+from datetime import datetime
+from limits import verificar_limite_consultas, verificar_limite_conexiones
 
 # Crear tabla en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -20,11 +23,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 @app.get("/")
 def root():
     return {"mensaje": "YvexIQ API funcionando"}
@@ -41,7 +45,13 @@ def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
     if existing_user is not None:
         raise HTTPException(status_code=400, detail="El correo ya esta registrado")
     user.password = auth.hash_password(user.password)
-    db_user = Usuario(email=user.email, password=user.password)
+    db_user = Usuario(
+        email=user.email, 
+        password=user.password,
+        tipo_suscripcion="gratuito",
+        suscripcion_activa=True,
+        fecha_registro=datetime.now(),
+            )
     db.add(db_user)
     db.commit()
     return {"message": "Usuario registrado exitosamente"}
@@ -54,7 +64,19 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     if not auth.verify_password(form_data.password, db_user.password):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     access_token = auth.create_access_token(data={"sub": form_data.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = auth.create_refresh_token(data={"sub": form_data.username})
+    db_user.refresh_token = refresh_token
+    db.commit()
+    response = JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,      # cambiar a True cuando tengas HTTPS
+        samesite="lax",
+        max_age=60 * 60 * 24 * 7
+    )
+    return response
 
 @app.post("/generar_sql")
 def test_sql():
@@ -65,6 +87,7 @@ def test_sql():
 
 @app.post("/consultar")
 def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    verificar_limite_consultas(current_user, db)
     conexion_id = consulta.conexion_id
     db_conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
     if db_conexion is None:
@@ -72,16 +95,31 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     if db_conexion.usuario_id != current_user.id:
         raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
     carpeta = f"data/{current_user.id}/{conexion_id}"
+    if not os.path.exists(carpeta):
+        return {"error": "Esta conexión no tiene datos sincronizados. Ejecuta el agente para sincronizar."}
     schema = detectar_schema_sync(carpeta)
-    sql = generate_sql(consulta.pregunta, schema, db_conexion.tipo_bd)
+    sql = generate_sql(consulta.pregunta, schema, "csv")
+    if sql.strip() == "NO_DATA":
+        respuesta = generate_fallback(consulta.pregunta, schema, "Pregunta no relacionada con los datos")
+        return {"explicacion": respuesta, "resultados": [], "graficos": None}
     try:
         resultados = ejecutar_query_sync(sql, carpeta)
         respuesta_natural = generate_explanation(consulta.pregunta, sql, resultados)
         graficos = generate_chart(consulta.pregunta, resultados)
+        db_historial = Historial(
+            usuario_id=current_user.id,
+            conexion_id=conexion_id,
+            pregunta=consulta.pregunta,
+            fecha=datetime.utcnow()
+            )
+        db.add(db_historial)
+        db.commit()
+        print(f"Historial guardado: {db_historial.id}")
+    
         return {
-        "resultados": resultados,
-        "explicacion": respuesta_natural,
-        "graficos": graficos
+            "resultados": resultados,
+            "explicacion": respuesta_natural,
+            "graficos": graficos
         }
     except Exception as e:
         fallback = generate_fallback(consulta.pregunta, schema, str(e))
@@ -100,6 +138,8 @@ def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_curre
     ruta_destino = os.path.join(carpeta, archivo.filename)
     with open(ruta_destino, "wb") as f:
         f.write(contenido)
+    db_conexion.fecha_ultima_sincronizacion = datetime.utcnow()
+    db.commit()
     return {"message": "Archivo sincronizado exitosamente"}
 
 @app.get("/conexiones", response_model=list[ConexionResponse])
@@ -109,11 +149,55 @@ def listar_conexiones(current_user: Usuario = Depends(auth.get_current_user), db
 
 @app.post("/conexiones", response_model=ConexionResponse)   
 def crear_conexion(conexion: ConexionCreate, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    verificar_limite_conexiones(current_user, db)
     db_conexion = Conexion(**conexion.dict(), usuario_id=current_user.id)
     db.add(db_conexion)
     db.commit()
     return db_conexion
 
+@app.delete("/conexiones/{id}")
+def eliminar_conexion(id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    db_conexion = db.query(Conexion).filter(Conexion.id == id).first()
+    if db_conexion is None:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada")
+    if db_conexion.usuario_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+    db.delete(db_conexion)
+    db.commit()
+    return {"message": "Conexion eliminada exitosamente"}
+
+@app.get("/historial")
+def obtener_historial(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    historial = db.query(Historial).filter(
+        Historial.usuario_id == current_user.id
+    ).order_by(Historial.fecha.desc()).limit(10).all()
+    return historial
+
+@app.post("/refresh")
+def refresh_token(request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="No hay refresh token")
     
+    payload = auth.verify_refresh_token(token)
+    email = payload.get("sub")
+    
+    db_user = db.query(Usuario).filter(Usuario.email == email).first()
+    if db_user is None or db_user.refresh_token != token:
+        raise HTTPException(status_code=401, detail="Refresh token invalido")
+    
+    new_access_token = auth.create_access_token(data={"sub": email})
+    return {"access_token": new_access_token, "token_type": "bearer"}
 
-
+@app.post("/logout")
+def logout(request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("refresh_token")
+    if token:
+        db_user = db.query(Usuario).filter(Usuario.refresh_token == token).first()
+        if db_user:
+            db_user.refresh_token = None
+            db.commit()
+    
+    response = JSONResponse(content={"message": "Sesión cerrada"})
+    response.delete_cookie("refresh_token")
+    return response

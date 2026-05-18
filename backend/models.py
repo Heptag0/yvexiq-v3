@@ -12,7 +12,7 @@ class Usuario(Base):
     fecha_inicio_suscripcion = Column(DateTime)
     fecha_vencimiento = Column(DateTime)
     fecha_registro = Column(DateTime)
-
+    refresh_token = Column(String, nullable=True)
 class Conexion(Base):
     __tablename__ = "conexiones"
     id = Column(Integer, primary_key=True, index=True)
@@ -23,4 +23,11 @@ class Conexion(Base):
     fecha_creacion = Column(DateTime)
     fecha_ultima_sincronizacion = Column(DateTime)
 
+class Historial(Base):
+    __tablename__ = "historial"
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
+    conexion_id = Column(Integer, ForeignKey("conexiones.id"))
+    pregunta = Column(String)
+    fecha = Column(DateTime)
 

@@ -354,7 +354,7 @@
       setLoading('btn-login','login-spinner','login-text', true);
       try {
         const fd = new FormData(); fd.append('username', email); fd.append('password', pass);
-        const res  = await fetch(`${API}/login`, { method:'POST', body:fd });
+        const res = await fetch(`${API}/login`, { method:'POST', body:fd, credentials:'include' });
         const data = await res.json();
         if (!res.ok) showMsg('login-error', data.detail || 'Credenciales incorrectas.');
         else { localStorage.setItem('yvex_token', data.access_token); window.location.href = 'dashboard.html'; }
@@ -387,6 +387,36 @@
       if (e.key !== 'Enter') return;
       document.querySelector('.form-panel.active').id === 'panel-login' ? handleLogin() : handleRegister();
     });
+    async function refreshAccessToken() {
+      const res = await fetch(`${API}/refresh`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        localStorage.removeItem('yvex_token');
+        window.location.href = 'login.html';
+        return null;
+      }
+      const data = await res.json();
+      localStorage.setItem('yvex_token', data.access_token);
+      return data.access_token;
+      }
+
+    async function fetchConAuth(url, options = {}) {
+      const token = localStorage.getItem('yvex_token');
+      options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+      options.credentials = 'include';
+
+      let res = await fetch(url, options);
+
+      if (res.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (!newToken) return null;
+        options.headers['Authorization'] = `Bearer ${newToken}`;
+        res = await fetch(url, options);
+      }
+      return res;
+    }
   </script>
 </body>
 </html>

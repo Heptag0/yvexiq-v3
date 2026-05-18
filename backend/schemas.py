@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
 
 class UsuarioCreate(BaseModel):
     email: str
@@ -23,6 +25,7 @@ class ConexionResponse(BaseModel):
     tipo_bd: str
     ruta_archivo: str
     usuario_id: int
+    fecha_ultima_sincronizacion: Optional[datetime] = None
 
     class Config:
         from_attributes = True
