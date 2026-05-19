@@ -21,3 +21,5 @@ agent/main.dist/
 agent/main.build/
 agent/main.onefile-build/
 agent/__pycache__/
+*.exe
+*.rar
