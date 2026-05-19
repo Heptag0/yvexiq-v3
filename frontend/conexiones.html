@@ -458,9 +458,9 @@
         </div>
 
         <div class="field">
-          <label>Ruta del archivo</label>
-          <input type="text" id="f-ruta" placeholder="C:/ruta/al/archivo.fdb"/>
-          <span class="field-hint">Copia la ruta completa del archivo en tu computadora. Usa barras normales (/) en vez de barras invertidas (\).</span>
+          <label>Archivo</label>
+          <input type="file" id="f-archivo" accept=".fdb,.csv,.xlsx"/>
+          <span class="field-hint">Selecciona tu archivo Firebird (.fdb), Excel (.xlsx) o CSV (.csv).</span>
         </div>
 
         <div class="modal-actions">
@@ -494,7 +494,18 @@
     }
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-    function logout() { localStorage.removeItem('yvex_token'); window.location.href = 'login.html'; }
+    async function logout() {
+        try {
+            await fetch(API + '/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch {}
+        localStorage.removeItem('yvex_token');
+        localStorage.removeItem('yvex_conn_id');
+        localStorage.removeItem('yvex_conn_name');
+        window.location.href = 'login.html';
+    }
 
     // Icono por tipo
     function iconForType(tipo) {
@@ -535,18 +546,53 @@
           <div class="conn-footer">
             <div class="conn-sync">
               <div class="sync-dot ${c.fecha_ultima_sincronizacion ? 'ok' : 'none'}"></div>
-              <span>${c.fecha_ultima_sincronizacion ? 'Sincronizado' : 'Sin sincronizar'}</span>
+              <span>${c.fecha_ultima_sincronizacion ? new Date(c.fecha_ultima_sincronizacion).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}) : 'Sin sincronizar'}</span>
             </div>
-            <button class="btn-use" onclick="usarConexion(${c.id}, '${c.nombre}')">Usar esta BD</button>
-          </div>`;
+            <div style="display:flex; gap:8px;">
+              <button class="btn-use" onclick="sincronizarConexion(${c.id}, '${c.nombre}', this)">⟳ Sync</button>
+              <button class="btn-use" onclick="usarConexion(${c.id}, '${c.nombre}')">Usar BD</button>
+            </div>
+          </div>
+        `;
         grid.appendChild(card);
       });
+    }
+
+    async function refreshAccessToken() {
+        const res = await fetch(API + '/refresh', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        if (!res.ok) {
+            localStorage.removeItem('yvex_token');
+            window.location.href = 'login.html';
+            return null;
+        }
+        const data = await res.json();
+        localStorage.setItem('yvex_token', data.access_token);
+        return data.access_token;
+    }
+
+    async function fetchConAuth(url, options = {}) {
+        let token = localStorage.getItem('yvex_token');
+        options.headers = { ...options.headers, 'Authorization': 'Bearer ' + token };
+        options.credentials = 'include';
+
+        let res = await fetch(url, options);
+
+        if (res.status === 401) {
+            const newToken = await refreshAccessToken();
+            if (!newToken) return null;
+            options.headers['Authorization'] = 'Bearer ' + newToken;
+            res = await fetch(url, options);
+        }
+        return res;
     }
 
     // Cargar conexiones
     async function cargarConexiones() {
       try {
-        const res  = await fetch(`${API}/conexiones`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+        const res = await fetchConAuth(API + '/conexiones');
         const data = await res.json();
         if (res.ok) renderConexiones(data);
       } catch { showToast('Error al cargar conexiones', 'err'); }
@@ -568,41 +614,50 @@
 
     // Guardar conexión
     async function guardarConexion() {
-      const nombre       = document.getElementById('f-nombre').value.trim();
-      const tipo_bd      = document.getElementById('f-tipo').value;
-      const ruta_archivo = document.getElementById('f-ruta').value.trim();
+        const nombre   = document.getElementById('f-nombre').value.trim();
+        const tipo_bd  = document.getElementById('f-tipo').value;
+        const archivo  = document.getElementById('f-archivo').files[0];
 
-      document.getElementById('form-error').classList.remove('show');
+        document.getElementById('form-error').classList.remove('show');
 
-      if (!nombre)       { showFormError('El nombre es obligatorio.'); return; }
-      if (!tipo_bd)      { showFormError('Selecciona el tipo de base de datos.'); return; }
-      if (!ruta_archivo) { showFormError('La ruta del archivo es obligatoria.'); return; }
+        if (!nombre)  { showFormError('El nombre es obligatorio.'); return; }
+        if (!tipo_bd) { showFormError('Selecciona el tipo de base de datos.'); return; }
+        if (!archivo) { showFormError('Selecciona un archivo.'); return; }
 
-      setLoading(true);
-      try {
-        const res  = await fetch(`${API}/conexiones`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-          body: JSON.stringify({ nombre, tipo_bd, ruta_archivo })
-        });
-        const data = await res.json();
-        if (!res.ok) { showFormError(data.detail || 'Error al guardar.'); }
-        else {
-          closeModal();
-          showToast('Conexión guardada correctamente', 'ok');
-          cargarConexiones();
-        }
-      } catch { showFormError('Error de conexión con el servidor.'); }
-      finally { setLoading(false); }
+        setLoading(true);
+        try {
+            // 1. Crear la conexión
+            const res = await fetchConAuth(API + '/conexiones', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, tipo_bd, ruta_archivo: archivo.name })
+            });
+            const data = await res.json();
+            if (!res.ok) { showFormError(data.detail || 'Error al guardar.'); return; }
+
+            // 2. Subir el archivo
+            const conexion_id = data.id;
+            const fd = new FormData();
+            fd.append('archivo', archivo);
+
+            await fetchConAuth(API + '/sync?conexion_id=' + conexion_id, {
+                method: 'POST',
+                body: fd
+            });
+
+            closeModal();
+            showToast('Conexión creada y archivo subido', 'ok');
+            cargarConexiones();
+        } catch { showFormError('Error de conexión con el servidor.'); }
+        finally { setLoading(false); }
     }
 
     // Eliminar conexión
     async function eliminarConexion(id) {
       if (!confirm('¿Seguro que quieres eliminar esta conexión?')) return;
       try {
-        const res = await fetch(`${API}/conexiones/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        const res = await fetchConAuth(API + '/conexiones/' + id, {
+            method: 'DELETE'
         });
         if (res.ok) { showToast('Conexión eliminada', 'ok'); cargarConexiones(); }
         else showToast('Error al eliminar', 'err');
@@ -631,7 +686,7 @@
       const t    = document.getElementById('toast');
       const icon = document.getElementById('toast-icon');
       document.getElementById('toast-text').textContent = msg;
-      t.className = `toast ${type}`;
+      t.className = 'toast ' + type;
       icon.innerHTML = type === 'ok'
         ? '<polyline points="20 6 9 17 4 12"/>'
         : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
@@ -644,6 +699,26 @@
       if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('show')) guardarConexion();
       if (e.key === 'Escape') closeModal();
     });
+
+    async function sincronizarConexion(id, nombre, btn) {
+        const original = btn.textContent;
+        btn.textContent = 'Sincronizando...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetchConAuth(API + '/sync?conexion_id=' + id, {
+                method: 'POST',
+                body: new FormData() // el agente maneja el archivo real
+            });
+            showToast(nombre + ' sincronizado', 'ok');
+            cargarConexiones();
+        } catch {
+            showToast('Error al sincronizar', 'err');
+        } finally {
+            btn.textContent = original;
+            btn.disabled = false;
+        }
+    }
 
     cargarConexiones();
   </script>

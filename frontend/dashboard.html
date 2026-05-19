@@ -434,10 +434,16 @@
         <div class="header-title">Panel de <span>inteligencia</span></div>
       </div>
       <div class="header-right">
-        <div class="conn-selector" onclick="alert('Selector de conexiones — próximamente')">
-          <div class="conn-dot"></div>
-          <span id="conn-name">Mi Eleventa</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="conn-selector" onclick="toggleConnDropdown()">
+            <div class="conn-dot"></div>
+            <span id="conn-name">Cargando...</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="conn-dropdown" style="
+            display:none; position:absolute; top:58px; right:120px;
+            background:#0f1030; border:1px solid rgba(147,51,234,0.25);
+            border-radius:14px; padding:8px; min-width:220px;
+            box-shadow:0 8px 32px rgba(0,0,10,0.6); z-index:200;">
         </div>
         <div class="header-btn" title="Configuración">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -476,20 +482,52 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
-      <div class="input-hint">Presiona <kbd>Enter</kbd> para enviar · <kbd>Shift+Enter</kbd> para nueva línea</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+    <div class="input-hint">Presiona <kbd>Enter</kbd> para enviar · <kbd>Shift+Enter</kbd> para nueva línea</div>
+    <div style="display:flex; gap:6px;">
+        <button id="modo-rapido" onclick="setModo('rapido')" style="
+            padding:4px 12px; border-radius:20px; font-size:12px; cursor:pointer;
+            border:1px solid rgba(255,255,255,0.15); background:transparent;
+            color:rgba(245,243,255,0.55); font-family:'DM Sans',sans-serif;
+            transition:all 0.2s;">⚡ Rápido</button>
+        <button id="modo-profundo" onclick="setModo('profundo')" style="
+            padding:4px 12px; border-radius:20px; font-size:12px; cursor:pointer;
+            border:1px solid rgba(147,51,234,0.5); background:rgba(147,51,234,0.15);
+            color:#c084fc; font-family:'DM Sans',sans-serif;
+            transition:all 0.2s;">🔍 Profundo</button>
     </div>
+</div>
   </div>
 
   <script>
     const API = 'http://127.0.0.1:8000';
     const TOKEN = localStorage.getItem('yvex_token');
-    const CONN_ID = localStorage.getItem('yvex_conn_id') || 1;
-    const CONN_NAME = localStorage.getItem('yvex_conn_name') || 'Mi conexión';
-    document.getElementById('conn-name').textContent = CONN_NAME;
-    document.getElementById('active-conn-label').textContent = CONN_NAME;
-
     // Redirigir si no hay token
     if (!TOKEN) window.location.href = 'login.html';
+
+
+    let modoActual = 'profundo';
+    function setModo(modo) {
+        modoActual = modo;
+        const btnRapido = document.getElementById('modo-rapido');
+        const btnProfundo = document.getElementById('modo-profundo');
+
+        if (modo === 'rapido') {
+            btnRapido.style.background = 'rgba(147,51,234,0.15)';
+            btnRapido.style.borderColor = 'rgba(147,51,234,0.5)';
+            btnRapido.style.color = '#c084fc';
+            btnProfundo.style.background = 'transparent';
+            btnProfundo.style.borderColor = 'rgba(255,255,255,0.15)';
+            btnProfundo.style.color = 'rgba(245,243,255,0.55)';
+        } else {
+            btnProfundo.style.background = 'rgba(147,51,234,0.15)';
+            btnProfundo.style.borderColor = 'rgba(147,51,234,0.5)';
+            btnProfundo.style.color = '#c084fc';
+            btnRapido.style.background = 'transparent';
+            btnRapido.style.borderColor = 'rgba(255,255,255,0.15)';
+            btnRapido.style.color = 'rgba(245,243,255,0.55)';
+        }
+    }
 
     // Mostrar email en sidebar
     function parseJWT(token) {
@@ -530,9 +568,17 @@
     }
 
     // Logout
-    function logout() {
-      localStorage.removeItem('yvex_token');
-      window.location.href = 'login.html';
+    async function logout() {
+        try {
+            await fetch(API + '/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch {}
+        localStorage.removeItem('yvex_token');
+        localStorage.removeItem('yvex_conn_id');
+        localStorage.removeItem('yvex_conn_name');
+        window.location.href = 'login.html';
     }
 
     // Agregar mensaje al chat
@@ -605,34 +651,35 @@
 
       // Gráfico
       if (data.graficos) {
-        const chartId = 'chart-' + Date.now();
-        html += `
-          <div class="chart-wrap">
-            <div class="chart-head">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              Visualización
-            </div>
-            <div id="${chartId}" style="width:100%;height:360px;"></div>
-          </div>`;
-        html += '</div>';
-        div.innerHTML = html;
-        document.getElementById('chat-area').appendChild(div);
-        scrollChat();
+          const chartId = 'chart-' + Date.now();
+          const wrapperId = 'wrapper-' + chartId;
+          html += '<div class="chart-wrap">' +
+              '<div class="chart-head">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>' +
+              'Visualización' +
+              '<button onclick="toggleChart(\'' + wrapperId + '\')" style="margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:3px 10px;color:rgba(245,243,255,0.55);font-size:11px;cursor:pointer;">Ocultar</button>' +
+              '</div>' +
+              '<div id="' + wrapperId + '">' +
+              '<div id="' + chartId + '" style="width:100%;height:360px;"></div>' +
+              '</div>' +
+              '</div>';
+          html += '</div>';
+          div.innerHTML = html;
+          document.getElementById('chat-area').appendChild(div);
+          scrollChat();
 
-        // Renderizar ECharts
-        setTimeout(() => {
-          try {
-            const chart = echarts.init(document.getElementById(chartId), 'dark');
-            const option = JSON.parse(data.graficos);
-            // Aplicar tema YvexIQ
-            option.backgroundColor = 'transparent';
-            if (!option.color) option.color = ['#9333ea','#c084fc','#c026d3','#4f46e5','#818cf8'];
-            chart.setOption(option);
-            chart.resize();
-            window.addEventListener('resize', () => chart.resize());
-          } catch(e) { console.error('Chart error:', e); }
-        }, 100);
-        return;
+          setTimeout(() => {
+              try {
+                  const chart = echarts.init(document.getElementById(chartId), 'dark');
+                  const option = JSON.parse(data.graficos);
+                  option.backgroundColor = 'transparent';
+                  if (!option.color) option.color = ['#9333ea','#c084fc','#c026d3','#4f46e5','#818cf8'];
+                  chart.setOption(option);
+                  chart.resize();
+                  window.addEventListener('resize', () => chart.resize());
+              } catch(e) { console.error('Chart error:', e); }
+          }, 100);
+          return;
       }
 
       html += '</div>';
@@ -660,13 +707,10 @@
       addLoadingMsg();
 
       try {
-        const res = await fetch(`${API}/consultar`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${TOKEN}`
-          },
-          body: JSON.stringify({ pregunta: query, conexion_id: CONN_ID })
+        const res = await fetchConAuth(API + '/consultar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pregunta: query, conexion_id: connId, modo: modoActual })
         });
         const data = await res.json();
         removeLoading();
@@ -685,26 +729,142 @@
       }
     }
     async function cargarHistorial() {
-      try {
-        const res = await fetch(`${API}/historial`, {
-          headers: { 'Authorization': `Bearer ${TOKEN}` }
-      });
-        const data = await res.json();
-        const container = document.getElementById('historial-container');
-        container.innerHTML = '';
-        data.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'sb-hist-item';
-          div.onclick = () => loadHistory(item.pregunta);
-          div.innerHTML = `
-            <div class="sb-hist-dot"></div>
-            <span class="sb-hist-text">${item.pregunta}</span>`;
-          container.appendChild(div);
-        });
-      } catch { console.error('Error cargando historial'); }
-}
+        try {
+            const res = await fetchConAuth(API + '/historial');
+            if (!res || !res.ok) return;
+            const data = await res.json();
+            const container = document.getElementById('historial-container');
+            container.innerHTML = '';
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'sb-hist-item';
+                div.onclick = () => loadHistory(item.pregunta);
+                div.innerHTML = '<div class="sb-hist-dot"></div><span class="sb-hist-text">' + item.pregunta + '</span>';
+                container.appendChild(div);
+            });
+        } catch { console.error('Error cargando historial'); }
+    }
 
+    async function refreshAccessToken() {
+        const res = await fetchConAuth(API + '/historial');
+        if (!res.ok) {
+            localStorage.removeItem('yvex_token');
+            window.location.href = 'login.html';
+            return null;
+        }
+        const data = await res.json();
+        localStorage.setItem('yvex_token', data.access_token);
+        return data.access_token;
+    }
+
+    async function fetchConAuth(url, options = {}) {
+        let token = localStorage.getItem('yvex_token');
+        options.headers = { ...options.headers, 'Authorization': 'Bearer ' + token };
+        options.credentials = 'include';
+
+        let res = await fetch(url, options);
+
+        if (res.status === 401) {
+            const newToken = await refreshAccessToken();
+            if (!newToken) return null;
+            options.headers['Authorization'] = 'Bearer ' + newToken;
+            res = await fetch(url, options);
+        }
+        return res;
+    }
+
+    let conexiones = [];
+    let connId = parseInt(localStorage.getItem('yvex_conn_id')) || null;
+
+    async function cargarConexiones() {
+        try {
+            const res = await fetchConAuth(API + '/conexiones');
+            if (!res || !res.ok) return;
+            conexiones = await res.json();
+
+            if (!connId && conexiones.length > 0) {
+                connId = conexiones[0].id;
+                localStorage.setItem('yvex_conn_id', connId);
+                localStorage.setItem('yvex_conn_name', conexiones[0].nombre);
+            }
+
+            const activa = conexiones.find(c => c.id === connId) || conexiones[0];
+            if (activa) {
+                document.getElementById('conn-name').textContent = activa.nombre;
+                document.getElementById('active-conn-label').textContent = activa.nombre;
+            }
+
+            renderConnDropdown();
+        } catch { console.error('Error cargando conexiones'); }
+    }
+
+    function renderConnDropdown() {
+        const dd = document.getElementById('conn-dropdown');
+        dd.innerHTML = '';
+        conexiones.forEach(c => {
+            const item = document.createElement('div');
+            item.style.cssText = 'padding:10px 14px; border-radius:10px; cursor:pointer; font-size:13px; color:' + (c.id === connId ? '#c084fc' : 'rgba(245,243,255,0.55)') + '; background:' + (c.id === connId ? 'rgba(147,51,234,0.15)' : 'transparent');
+            item.textContent = c.nombre;
+            item.onmouseenter = () => { if (c.id !== connId) item.style.background = 'rgba(255,255,255,0.04)'; };
+            item.onmouseleave = () => { if (c.id !== connId) item.style.background = 'transparent'; };
+            item.onclick = () => seleccionarConexion(c);
+            dd.appendChild(item);
+        });
+    }
+
+    function seleccionarConexion(c) {
+        connId = c.id;
+        localStorage.setItem('yvex_conn_id', c.id);
+        localStorage.setItem('yvex_conn_name', c.nombre);
+        document.getElementById('conn-name').textContent = c.nombre;
+        document.getElementById('active-conn-label').textContent = c.nombre;
+        renderConnDropdown();
+        toggleConnDropdown();
+    }
+
+    function toggleConnDropdown() {
+        const dd = document.getElementById('conn-dropdown');
+        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    }
+
+    document.addEventListener('click', e => {
+        const dd = document.getElementById('conn-dropdown');
+        const selector = document.querySelector('.conn-selector');
+        if (!dd.contains(e.target) && !selector.contains(e.target)) {
+            dd.style.display = 'none';
+        }
+    });
+
+    async function cargarUsuario() {
+        try {
+            const res = await fetchConAuth(API + '/me');
+            if (!res || !res.ok) return;
+            const data = await res.json();
+            const planTextos = {
+                'gratuito': 'Plan Gratuito',
+                'basico': 'Plan Básico',
+                'pro': 'Plan Pro',
+                'enterprise': 'Plan Enterprise'
+            };
+            document.querySelector('.sb-user-plan').textContent = planTextos[data.plan] || data.plan;
+        } catch { console.error('Error cargando usuario'); }
+    }
+
+    function toggleChart(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        const btn = wrapper.previousElementSibling.querySelector('button');
+        if (wrapper.style.display === 'none') {
+            wrapper.style.display = 'block';
+            btn.textContent = 'Ocultar';
+        } else {
+            wrapper.style.display = 'none';
+            btn.textContent = 'Mostrar gráfico';
+        }
+    }
+
+cargarConexiones();
 cargarHistorial();
+cargarUsuario();
 
   </script>
 </body>

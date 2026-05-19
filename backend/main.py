@@ -104,6 +104,22 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
         return {"explicacion": respuesta, "resultados": [], "graficos": None}
     try:
         resultados = ejecutar_query_sync(sql, carpeta)
+
+        if consulta.modo == "rapido":
+            db_historial = Historial(
+                usuario_id=current_user.id,
+                conexion_id=conexion_id,
+                pregunta=consulta.pregunta,
+                fecha=datetime.utcnow()
+            )
+            db.add(db_historial)
+            db.commit()
+            return {
+                "resultados": resultados,
+                "explicacion": None,
+                "graficos": None
+            }
+
         respuesta_natural = generate_explanation(consulta.pregunta, sql, resultados)
         graficos = generate_chart(consulta.pregunta, resultados)
         db_historial = Historial(
@@ -111,11 +127,10 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
             conexion_id=conexion_id,
             pregunta=consulta.pregunta,
             fecha=datetime.utcnow()
-            )
+        )
         db.add(db_historial)
         db.commit()
         print(f"Historial guardado: {db_historial.id}")
-    
         return {
             "resultados": resultados,
             "explicacion": respuesta_natural,
@@ -201,3 +216,14 @@ def logout(request: Request, db: Session = Depends(get_db)):
     response = JSONResponse(content={"message": "Sesión cerrada"})
     response.delete_cookie("refresh_token")
     return response
+
+
+@app.get("/me")
+def get_me(current_user: Usuario = Depends(auth.get_current_user)):
+    from limits import get_plan
+    return {
+        "email": current_user.email,
+        "plan": get_plan(current_user),
+        "suscripcion_activa": current_user.suscripcion_activa,
+        "fecha_vencimiento": current_user.fecha_vencimiento
+    }

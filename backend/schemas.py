@@ -13,6 +13,7 @@ class UsuarioLogin(BaseModel):
 class Consulta(BaseModel):
     pregunta: str
     conexion_id: int
+    modo: Optional[str] = "profundo"
 
 class ConexionCreate(BaseModel):
     tipo_bd: str
