@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YvexIQ — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:           #08091a;
+      --sidebar-bg:   #0b0c1e;
+      --panel-bg:     rgba(255,255,255,0.04);
+      --border:       rgba(255,255,255,0.08);
+      --violet:       #9333ea;
+      --violet-light: #c084fc;
+      --violet-glow:  rgba(147,51,234,0.4);
+      --violet-dim:   rgba(147,51,234,0.12);
+      --magenta:      #c026d3;
+      --text:         #f5f3ff;
+      --text-dim:     rgba(245,243,255,0.55);
+      --text-faint:   rgba(245,243,255,0.28);
+      --error:        #fb7185;
+      --ok:           #4ade80;
+      --warning:      #fbbf24;
+      --sb-w:         64px;
+      --sb-w-open:    220px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      height: 100vh; display: flex; overflow: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sb-w); background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transition: width 0.3s cubic-bezier(0.16,1,0.3,1);
+      overflow: hidden; flex-shrink: 0; z-index: 100; position: relative;
+    }
+    .sidebar.open { width: var(--sb-w-open); }
+    .sb-top { padding: 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; min-height: 64px; }
+    .sb-logo-icon { width: 38px; height: 38px; flex-shrink: 0; background: linear-gradient(135deg, var(--violet), #6d28d9); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: white; box-shadow: 0 0 18px var(--violet-glow); cursor: pointer; }
+    .sb-logo-text { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fff, var(--violet-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; white-space: nowrap; opacity: 0; transition: opacity 0.2s; }
+    .sidebar.open .sb-logo-text { opacity: 1; }
+    .sb-toggle { position: absolute; right: -12px; top: 20px; width: 24px; height: 24px; background: var(--sidebar-bg); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 101; }
+    .sb-toggle svg { width: 12px; height: 12px; color: var(--text-faint); transition: transform 0.3s; }
+    .sidebar.open .sb-toggle svg { transform: rotate(180deg); }
+    .sb-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 4px; }
+    .sb-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; color: var(--text-faint); font-size: 14px; font-weight: 500; border: 1px solid transparent; text-decoration: none; }
+    .sb-item:hover { background: var(--violet-dim); color: var(--text-dim); }
+    .sb-item.active { background: var(--violet-dim); color: var(--violet-light); border-color: rgba(147,51,234,0.2); }
+    .sb-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .sb-item-label { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.open .sb-item-label { opacity: 1; }
+    .sb-bottom { padding: 12px 8px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+    .sb-user { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; overflow: hidden; white-space: nowrap; }
+    .sb-avatar { width: 32px; height: 32px; flex-shrink: 0; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; }
+    .sb-user-info { opacity: 0; transition: opacity 0.2s; }
+    .sidebar.open .sb-user-info { opacity: 1; }
+    .sb-user-email { font-size: 12px; color: var(--text-dim); }
+    .sb-user-plan { font-size: 10px; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* MAIN */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .main-aurora { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+    .ma { position: absolute; border-radius: 50%; filter: blur(90px); mix-blend-mode: screen; }
+    .ma1 { width:500px; height:400px; background:radial-gradient(ellipse, rgba(100,30,200,0.3) 0%, transparent 65%); top:-150px; right:-100px; }
+    .ma2 { width:400px; height:400px; background:radial-gradient(ellipse, rgba(60,40,200,0.2) 0%, transparent 65%); bottom:-100px; left:100px; }
+
+    .header { position: relative; z-index: 10; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(8,9,26,0.7); backdrop-filter: blur(12px); }
+    .header-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; }
+    .header-title span { color: #ef4444; font-style: italic; }
+    .admin-badge { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+    .content { flex: 1; overflow-y: auto; padding: 28px 32px; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 24px; }
+    .content::-webkit-scrollbar { width: 4px; }
+    .content::-webkit-scrollbar-thumb { background: rgba(147,51,234,0.3); border-radius: 2px; }
+
+    /* MÉTRICAS */
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .metric-card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px; transition: all 0.2s; }
+    .metric-card:hover { border-color: rgba(147,51,234,0.3); transform: translateY(-2px); }
+    .metric-label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.8px; }
+    .metric-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #fff, var(--violet-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .metric-sub { font-size: 12px; color: var(--text-dim); }
+
+    /* PLANES */
+    .planes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .plan-card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+    .plan-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint); margin-bottom: 8px; }
+    .plan-count { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
+    .plan-gratuito { color: var(--text-dim); }
+    .plan-basico { color: var(--ok); }
+    .plan-pro { color: var(--violet-light); }
+    .plan-enterprise { color: var(--warning); }
+
+    /* SECCIÓN */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+    .section-sub { font-size: 13px; color: var(--text-faint); }
+
+    /* TABLA USUARIOS */
+    .tabla-wrap { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .tabla-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .tabla-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: rgba(147,51,234,0.08); color: var(--violet-light); padding: 12px 16px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-dim); white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* BADGES */
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .badge-gratuito { background: rgba(245,243,255,0.08); color: var(--text-dim); }
+    .badge-basico { background: rgba(74,222,128,0.12); color: var(--ok); border: 1px solid rgba(74,222,128,0.2); }
+    .badge-pro { background: rgba(192,132,252,0.12); color: var(--violet-light); border: 1px solid rgba(192,132,252,0.2); }
+    .badge-enterprise { background: rgba(251,191,36,0.12); color: var(--warning); border: 1px solid rgba(251,191,36,0.2); }
+    .badge-activo { background: rgba(74,222,128,0.12); color: var(--ok); }
+    .badge-inactivo { background: rgba(251,113,133,0.12); color: var(--error); }
+    .badge-admin { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+
+    /* BOTONES ACCIÓN */
+    .btn-action { padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid; font-family: 'DM Sans', sans-serif; }
+    .btn-plan { background: var(--violet-dim); border-color: rgba(147,51,234,0.3); color: var(--violet-light); }
+    .btn-plan:hover { background: rgba(147,51,234,0.2); }
+    .btn-delete { background: rgba(251,113,133,0.08); border-color: rgba(251,113,133,0.25); color: var(--error); }
+    .btn-delete:hover { background: rgba(251,113,133,0.15); }
+
+    /* BARRA PROGRESO */
+    .progress-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; width: 80px; display: inline-block; vertical-align: middle; margin-left: 8px; }
+    .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--violet), var(--magenta)); }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,10,0.75); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 24px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #0f1030; border: 1px solid rgba(147,51,234,0.25); border-radius: 24px; padding: 32px; width: 100%; max-width: 420px; box-shadow: 0 24px 64px rgba(0,0,10,0.7); animation: modalIn 0.3s cubic-bezier(0.16,1,0.3,1) forwards; }
+    @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+    .modal-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .modal-field label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint); font-weight: 600; }
+    .modal-field select { width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; appearance: none; }
+    .modal-field select:focus { border-color: var(--violet); }
+    .modal-field select option { background: #0f1030; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-cancel { flex: 1; padding: 11px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; }
+    .btn-save { flex: 2; padding: 11px; border-radius: 10px; background: linear-gradient(135deg, var(--violet), var(--magenta)); border: none; color: white; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; }
+    .btn-save:hover { opacity: 0.9; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 2000; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,10,0.5); transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); color: var(--ok); }
+    .toast.err { background: rgba(251,113,133,0.15); border: 1px solid rgba(251,113,133,0.3); color: var(--error); }
+
+    /* BÚSQUEDA */
+    .search-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 8px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; width: 220px; transition: all 0.2s; }
+    .search-input:focus { border-color: var(--violet); }
+    .search-input::placeholder { color: var(--text-faint); }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="sb-top">
+      <div class="sb-logo-icon" onclick="toggleSidebar()">Y</div>
+      <span class="sb-logo-text">YvexIQ</span>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="sb-item-label">Panel</span>
+      </div>
+      <a class="sb-item" href="dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sb-item-label">Dashboard</span>
+      </a>
+    </div>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-avatar">A</div>
+        <div class="sb-user-info">
+          <div class="sb-user-email" id="sb-email">admin</div>
+          <div class="sb-user-plan">Administrador</div>
+        </div>
+      </div>
+      <div class="sb-item" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="sb-item-label">Cerrar sesión</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-aurora">
+      <div class="ma ma1"></div>
+      <div class="ma ma2"></div>
+    </div>
+
+    <div class="header">
+      <div class="header-title">Panel de <span>administración</span></div>
+      <div class="admin-badge">🔐 Admin</div>
+    </div>
+
+    <div class="content">
+
+      <!-- MÉTRICAS -->
+      <div>
+        <div class="section-header" style="margin-bottom:16px;">
+          <div>
+            <div class="section-title">Métricas generales</div>
+            <div class="section-sub">Resumen en tiempo real</div>
+          </div>
+          <button onclick="cargarDatos()" style="background:var(--violet-dim);border:1px solid rgba(147,51,234,0.3);color:var(--violet-light);padding:8px 16px;border-radius:10px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">↺ Actualizar</button>
+        </div>
+        <div class="metrics-grid" id="metrics-grid">
+          <div class="metric-card"><div class="metric-label">Total usuarios</div><div class="metric-value" id="m-total">—</div></div>
+          <div class="metric-card"><div class="metric-label">Usuarios activos</div><div class="metric-value" id="m-activos">—</div></div>
+          <div class="metric-card"><div class="metric-label">Consultas hoy</div><div class="metric-value" id="m-hoy">—</div></div>
+          <div class="metric-card"><div class="metric-label">Consultas totales</div><div class="metric-value" id="m-total-consultas">—</div></div>
+        </div>
+      </div>
+
+      <!-- DISTRIBUCIÓN POR PLAN -->
+      <div>
+        <div class="section-title" style="margin-bottom:12px;">Distribución por plan</div>
+        <div class="planes-grid">
+          <div class="plan-card"><div class="plan-name">Gratuito</div><div class="plan-count plan-gratuito" id="p-gratuito">—</div></div>
+          <div class="plan-card"><div class="plan-name">Básico</div><div class="plan-count plan-basico" id="p-basico">—</div></div>
+          <div class="plan-card"><div class="plan-name">Pro</div><div class="plan-count plan-pro" id="p-pro">—</div></div>
+          <div class="plan-card"><div class="plan-name">Enterprise</div><div class="plan-count plan-enterprise" id="p-enterprise">—</div></div>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div>
+        <div class="section-header" style="margin-bottom:16px;">
+          <div>
+            <div class="section-title">Usuarios</div>
+            <div class="section-sub" id="usuarios-count">Cargando...</div>
+          </div>
+          <input class="search-input" type="text" placeholder="Buscar por email..." oninput="filtrarUsuarios(this.value)" id="search-input"/>
+        </div>
+        <div class="tabla-wrap">
+          <div class="tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Email</th>
+                  <th>Plan</th>
+                  <th>Estado</th>
+                  <th>Consultas hoy</th>
+                  <th>Límite diario</th>
+                  <th>Total consultas</th>
+                  <th>Conexiones</th>
+                  <th>Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usuarios-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL CAMBIAR PLAN -->
+  <div class="modal-overlay" id="modal-plan" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-title">Cambiar plan</div>
+      <input type="hidden" id="modal-user-id"/>
+      <div class="modal-field">
+        <label>Plan</label>
+        <select id="modal-plan-select">
+          <option value="gratuito">Gratuito</option>
+          <option value="basico">Básico</option>
+          <option value="pro">Pro</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Estado suscripción</label>
+        <select id="modal-activo-select">
+          <option value="true">Activa</option>
+          <option value="false">Inactiva</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-save" onclick="guardarPlan()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"><span id="toast-text"></span></div>
+
+  <script>
+    const API = 'http://127.0.0.1:8000';
+    const TOKEN = localStorage.getItem('yvex_token');
+    if (!TOKEN) window.location.href = 'login.html';
+
+    function parseJWT(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch { return {}; } }
+    const pl = parseJWT(TOKEN);
+    if (pl.sub) {
+      document.getElementById('sb-email').textContent = pl.sub;
+      document.getElementById('sb-avatar').textContent = pl.sub[0].toUpperCase();
+    }
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    async function logout() {
+      try { await fetch(API + '/logout', { method: 'POST', credentials: 'include' }); } catch {}
+      localStorage.removeItem('yvex_token');
+      window.location.href = 'login.html';
+    }
+
+    async function fetchConAuth(url, options = {}, _retry = true) {
+      let token = localStorage.getItem('yvex_token');
+      options.headers = { ...options.headers, 'Authorization': 'Bearer ' + token };
+      options.credentials = 'include';
+      let res = await fetch(url, options);
+      if (res.status === 401 && _retry) {
+        const r = await fetch(API + '/refresh', { method: 'POST', credentials: 'include' });
+        if (!r.ok) { localStorage.removeItem('yvex_token'); window.location.href = 'login.html'; return res; }
+        const d = await r.json();
+        localStorage.setItem('yvex_token', d.access_token);
+        options.headers['Authorization'] = 'Bearer ' + d.access_token;
+        res = await fetch(url, options);
+      }
+      return res;
+    }
+
+    let todosUsuarios = [];
+
+    async function cargarDatos() {
+      await Promise.all([cargarMetricas(), cargarUsuarios()]);
+    }
+
+    async function cargarMetricas() {
+      try {
+        const res = await fetchConAuth(API + '/admin/metricas');
+        if (!res.ok) { showToast('Sin acceso a métricas', 'err'); return; }
+        const d = await res.json();
+        document.getElementById('m-total').textContent = d.total_usuarios;
+        document.getElementById('m-activos').textContent = d.usuarios_activos;
+        document.getElementById('m-hoy').textContent = d.consultas_hoy;
+        document.getElementById('m-total-consultas').textContent = d.consultas_total;
+        document.getElementById('p-gratuito').textContent = d.por_plan.gratuito || 0;
+        document.getElementById('p-basico').textContent = d.por_plan.basico || 0;
+        document.getElementById('p-pro').textContent = d.por_plan.pro || 0;
+        document.getElementById('p-enterprise').textContent = d.por_plan.enterprise || 0;
+      } catch { showToast('Error cargando métricas', 'err'); }
+    }
+
+    async function cargarUsuarios() {
+      try {
+        const res = await fetchConAuth(API + '/admin/usuarios');
+        if (!res.ok) { showToast('Sin acceso a usuarios', 'err'); return; }
+        todosUsuarios = await res.json();
+        document.getElementById('usuarios-count').textContent = todosUsuarios.length + ' usuarios registrados';
+        renderUsuarios(todosUsuarios);
+      } catch { showToast('Error cargando usuarios', 'err'); }
+    }
+
+    function renderUsuarios(lista) {
+      const tbody = document.getElementById('usuarios-tbody');
+      tbody.innerHTML = '';
+      lista.forEach(u => {
+        const pct = u.limite_consultas ? Math.min(100, Math.round(u.consultas_hoy / u.limite_consultas * 100)) : 0;
+        const limiteTexto = u.limite_consultas === null ? '∞' : u.limite_consultas;
+        const fecha = u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-MX') : '—';
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td style="color:var(--text-faint)">' + u.id + '</td>' +
+          '<td style="color:var(--text)">' + u.email + (u.es_admin ? ' <span class="badge badge-admin">admin</span>' : '') + '</td>' +
+          '<td><span class="badge badge-' + u.plan + '">' + u.plan + '</span></td>' +
+          '<td><span class="badge ' + (u.suscripcion_activa ? 'badge-activo">activo' : 'badge-inactivo">inactivo') + '</span></td>' +
+          '<td>' + u.consultas_hoy + (u.limite_consultas ? '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' : '') + '</td>' +
+          '<td>' + limiteTexto + '</td>' +
+          '<td>' + u.consultas_total + '</td>' +
+          '<td>' + u.conexiones + (u.limite_conexiones === null ? '/∞' : '/' + u.limite_conexiones) + '</td>' +
+          '<td>' + fecha + '</td>' +
+          '<td style="display:flex;gap:6px;">' +
+          '<button class="btn-action btn-plan" onclick="abrirModalPlan(' + u.id + ', \'' + u.plan + '\', ' + u.suscripcion_activa + ')">Plan</button>' +
+          (u.es_admin ? '' : '<button class="btn-action btn-delete" onclick="eliminarUsuario(' + u.id + ', \'' + u.email + '\')">Eliminar</button>') +
+          '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filtrarUsuarios(query) {
+      const filtrados = todosUsuarios.filter(u => u.email.toLowerCase().includes(query.toLowerCase()));
+      renderUsuarios(filtrados);
+    }
+
+    function abrirModalPlan(id, plan, activo) {
+      document.getElementById('modal-user-id').value = id;
+      document.getElementById('modal-plan-select').value = plan;
+      document.getElementById('modal-activo-select').value = activo ? 'true' : 'false';
+      document.getElementById('modal-plan').classList.add('show');
+    }
+
+    function closeModal() { document.getElementById('modal-plan').classList.remove('show'); }
+    function handleOverlayClick(e) { if (e.target === document.getElementById('modal-plan')) closeModal(); }
+
+    async function guardarPlan() {
+      const id = document.getElementById('modal-user-id').value;
+      const plan = document.getElementById('modal-plan-select').value;
+      const activo = document.getElementById('modal-activo-select').value === 'true';
+      try {
+        const res = await fetchConAuth(API + '/admin/usuarios/' + id + '/plan', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan, suscripcion_activa: activo })
+        });
+        if (res.ok) {
+          closeModal();
+          showToast('Plan actualizado correctamente', 'ok');
+          cargarDatos();
+        } else {
+          showToast('Error al actualizar plan', 'err');
+        }
+      } catch { showToast('Error de conexión', 'err'); }
+    }
+
+    async function eliminarUsuario(id, email) {
+      if (!confirm('¿Eliminar a ' + email + '? Esta acción no se puede deshacer.')) return;
+      try {
+        const res = await fetchConAuth(API + '/admin/usuarios/' + id, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Usuario eliminado', 'ok');
+          cargarDatos();
+        } else {
+          showToast('Error al eliminar usuario', 'err');
+        }
+      } catch { showToast('Error de conexión', 'err'); }
+    }
+
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      t.className = 'toast ' + type;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    cargarDatos();
+  </script>
+</body>
+</html>

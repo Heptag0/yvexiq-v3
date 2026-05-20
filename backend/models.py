@@ -13,6 +13,7 @@ class Usuario(Base):
     fecha_vencimiento = Column(DateTime)
     fecha_registro = Column(DateTime)
     refresh_token = Column(String, nullable=True)
+    es_admin = Column(Boolean, default=False)
 class Conexion(Base):
     __tablename__ = "conexiones"
     id = Column(Integer, primary_key=True, index=True)
@@ -30,4 +31,6 @@ class Historial(Base):
     conexion_id = Column(Integer, ForeignKey("conexiones.id"))
     pregunta = Column(String)
     fecha = Column(DateTime)
+    respuesta = Column(String, nullable=True)
+
 

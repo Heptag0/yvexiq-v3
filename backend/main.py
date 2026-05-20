@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database import engine, Base
 from models import Usuario, Conexion, Historial
-from schemas import UsuarioCreate, UsuarioLogin, Consulta, ConexionCreate, ConexionResponse
+from schemas import UsuarioCreate, UsuarioLogin, Consulta, ConexionCreate, ConexionResponse, HistorialResponse
 from database import get_db
 import auth
 from llm import generate_sql, generate_explanation, generate_chart, generate_fallback
@@ -63,16 +63,23 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     if not auth.verify_password(form_data.password, db_user.password):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    
     access_token = auth.create_access_token(data={"sub": form_data.username})
     refresh_token = auth.create_refresh_token(data={"sub": form_data.username})
+    
     db_user.refresh_token = refresh_token
     db.commit()
-    response = JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
+
+    response = JSONResponse(content={
+        "access_token": access_token,
+        "token_type": "bearer",
+        "es_admin": db_user.es_admin or False
+    })
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,      # cambiar a True cuando tengas HTTPS
+        secure=False,
         samesite="lax",
         max_age=60 * 60 * 24 * 7
     )
@@ -110,6 +117,7 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
                 usuario_id=current_user.id,
                 conexion_id=conexion_id,
                 pregunta=consulta.pregunta,
+                respuesta=str(resultados),
                 fecha=datetime.utcnow()
             )
             db.add(db_historial)
@@ -126,6 +134,7 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
             usuario_id=current_user.id,
             conexion_id=conexion_id,
             pregunta=consulta.pregunta,
+            respuesta=respuesta_natural,
             fecha=datetime.utcnow()
         )
         db.add(db_historial)
@@ -181,7 +190,7 @@ def eliminar_conexion(id: int, current_user: Usuario = Depends(auth.get_current_
     db.commit()
     return {"message": "Conexion eliminada exitosamente"}
 
-@app.get("/historial")
+@app.get("/historial", response_model=list[HistorialResponse])
 def obtener_historial(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
     historial = db.query(Historial).filter(
         Historial.usuario_id == current_user.id
@@ -226,4 +235,87 @@ def get_me(current_user: Usuario = Depends(auth.get_current_user)):
         "plan": get_plan(current_user),
         "suscripcion_activa": current_user.suscripcion_activa,
         "fecha_vencimiento": current_user.fecha_vencimiento
+    }
+
+@app.delete("/historial")
+def borrar_historial(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    db.query(Historial).filter(Historial.usuario_id == current_user.id).delete()
+    db.commit()
+    return {"message": "Historial borrado"}
+
+def verificar_admin(current_user: Usuario = Depends(auth.get_current_user)):
+    if not current_user.es_admin:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    return current_user
+
+@app.get("/admin/usuarios")
+def admin_usuarios(db: Session = Depends(get_db), admin: Usuario = Depends(verificar_admin)):
+    from limits import get_plan, PLANES
+    from sqlalchemy import func
+    usuarios = db.query(Usuario).all()
+    resultado = []
+    for u in usuarios:
+        plan = get_plan(u)
+        consultas_hoy = db.query(Historial).filter(
+            Historial.usuario_id == u.id,
+            Historial.fecha >= datetime(datetime.utcnow().date().year, datetime.utcnow().date().month, datetime.utcnow().date().day)
+        ).count()
+        consultas_total = db.query(Historial).filter(Historial.usuario_id == u.id).count()
+        conexiones = db.query(Conexion).filter(Conexion.usuario_id == u.id).count()
+        resultado.append({
+            "id": u.id,
+            "email": u.email,
+            "plan": plan,
+            "suscripcion_activa": u.suscripcion_activa,
+            "es_admin": u.es_admin,
+            "fecha_registro": u.fecha_registro,
+            "fecha_vencimiento": u.fecha_vencimiento,
+            "consultas_hoy": consultas_hoy,
+            "consultas_total": consultas_total,
+            "conexiones": conexiones,
+            "limite_consultas": PLANES[plan]["consultas_por_dia"],
+            "limite_conexiones": PLANES[plan]["conexiones_max"]
+        })
+    return resultado
+
+@app.patch("/admin/usuarios/{id}/plan")
+def admin_cambiar_plan(id: int, data: dict, db: Session = Depends(get_db), admin: Usuario = Depends(verificar_admin)):
+    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    usuario.tipo_suscripcion = data.get("plan")
+    usuario.suscripcion_activa = data.get("suscripcion_activa", True)
+    db.commit()
+    return {"message": "Plan actualizado"}
+
+@app.delete("/admin/usuarios/{id}")
+def admin_eliminar_usuario(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(verificar_admin)):
+    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    db.query(Historial).filter(Historial.usuario_id == id).delete()
+    db.query(Conexion).filter(Conexion.usuario_id == id).delete()
+    db.delete(usuario)
+    db.commit()
+    return {"message": "Usuario eliminado"}
+
+@app.get("/admin/metricas")
+def admin_metricas(db: Session = Depends(get_db), admin: Usuario = Depends(verificar_admin)):
+    from datetime import date
+    hoy = date.today()
+    total_usuarios = db.query(Usuario).count()
+    usuarios_activos = db.query(Usuario).filter(Usuario.suscripcion_activa == True).count()
+    consultas_hoy = db.query(Historial).filter(
+        Historial.fecha >= datetime(hoy.year, hoy.month, hoy.day)
+    ).count()
+    consultas_total = db.query(Historial).count()
+    por_plan = {}
+    for plan in ["gratuito", "basico", "pro", "enterprise"]:
+        por_plan[plan] = db.query(Usuario).filter(Usuario.tipo_suscripcion == plan).count()
+    return {
+        "total_usuarios": total_usuarios,
+        "usuarios_activos": usuarios_activos,
+        "consultas_hoy": consultas_hoy,
+        "consultas_total": consultas_total,
+        "por_plan": por_plan
     }

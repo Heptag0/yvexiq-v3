@@ -373,6 +373,8 @@
 
     .input-hint { font-size: 11px; color: var(--text-faint); margin-top: 8px; text-align: center; }
     .input-hint kbd { background: rgba(255,255,255,0.08); border-radius: 4px; padding: 1px 6px; font-size: 10px; }
+    #btn-borrar-historial { opacity: 0; }
+    .sidebar.open #btn-borrar-historial { opacity: 1; }
   </style>
 </head>
 <body>
@@ -402,7 +404,12 @@
         <span class="sb-item-label">Historial</span>
       </div>
 
-      <div class="sb-section-label">Recientes</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px 4px;">
+          <div class="sb-section-label" style="padding:0; opacity:1;">Recientes</div>
+          <div id="btn-borrar-historial" onclick="borrarHistorial()" style="
+              font-size:10px; color:rgba(245,243,255,0.3); cursor:pointer;
+              transition:opacity 0.2s;" title="Borrar historial">✕ Borrar</div>
+      </div>
       <div id="historial-container"></div>
     </div>
 
@@ -731,42 +738,77 @@
     async function cargarHistorial() {
         try {
             const res = await fetchConAuth(API + '/historial');
-            if (!res || !res.ok) return;
+            if (!res || res.status === 401) return;
+            if (!res.ok) return;
             const data = await res.json();
             const container = document.getElementById('historial-container');
             container.innerHTML = '';
-            data.forEach(item => {
+            data.slice(0, 5).forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'sb-hist-item';
-                div.onclick = () => loadHistory(item.pregunta);
+                div.onclick = () => cargarConversacion(item);
                 div.innerHTML = '<div class="sb-hist-dot"></div><span class="sb-hist-text">' + item.pregunta + '</span>';
                 container.appendChild(div);
             });
         } catch { console.error('Error cargando historial'); }
     }
 
-    async function refreshAccessToken() {
-        const res = await fetchConAuth(API + '/historial');
-        if (!res.ok) {
-            localStorage.removeItem('yvex_token');
-            window.location.href = 'login.html';
-            return null;
+    function cargarConversacion(item) {
+        // Limpiar chat
+        const chatArea = document.getElementById('chat-area');
+        chatArea.innerHTML = '';
+        // Mostrar pregunta del usuario
+        addUserMsg(item.pregunta);
+        // Mostrar respuesta guardada
+        if (item.respuesta) {
+            const div = document.createElement('div');
+            div.className = 'msg-ai';
+            div.innerHTML = '<div class="ai-avatar">Y</div>' +
+                '<div class="msg-ai-content">' +
+                '<div class="ai-explanation">' + marked.parse(item.respuesta) + '</div>' +
+                '</div>';
+            chatArea.appendChild(div);
         }
-        const data = await res.json();
-        localStorage.setItem('yvex_token', data.access_token);
-        return data.access_token;
+        scrollChat();
     }
 
-    async function fetchConAuth(url, options = {}) {
+
+    async function borrarHistorial() {
+        if (!confirm('¿Borrar todo el historial?')) return;
+        try {
+            const res = await fetchConAuth(API + '/historial', { method: 'DELETE' });
+            if (res && res.ok) {
+                document.getElementById('historial-container').innerHTML = '';
+                document.getElementById('chat-area').innerHTML = '<div class="empty-state" id="empty-state"><div class="empty-icon">✦</div><h2 class="empty-title">¿Qué quieres <em>saber hoy?</em></h2><p class="empty-sub">Escribe cualquier pregunta sobre tu negocio en lenguaje natural.</p></div>';
+            }
+        } catch { console.error('Error borrando historial'); }
+    }
+
+    async function refreshAccessToken() {
+        try {
+            const res = await fetch(API + '/refresh', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            localStorage.setItem('yvex_token', data.access_token);
+            return data.access_token;
+        } catch {
+            return null;
+        }
+    }
+
+    async function fetchConAuth(url, options = {}, _retry = true) {
         let token = localStorage.getItem('yvex_token');
         options.headers = { ...options.headers, 'Authorization': 'Bearer ' + token };
         options.credentials = 'include';
 
         let res = await fetch(url, options);
 
-        if (res.status === 401) {
+        if (res.status === 401 && _retry) {
             const newToken = await refreshAccessToken();
-            if (!newToken) return null;
+            if (!newToken) return res;
             options.headers['Authorization'] = 'Bearer ' + newToken;
             res = await fetch(url, options);
         }

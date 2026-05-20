@@ -31,3 +31,12 @@ class ConexionResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class HistorialResponse(BaseModel):
+    id: int
+    pregunta: str
+    respuesta: Optional[str] = None
+    fecha: datetime
+    conexion_id: int
+
+    class Config:
+        from_attributes = True
