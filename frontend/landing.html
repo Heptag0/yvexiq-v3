@@ -23,404 +23,156 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg); color: var(--text);
-      overflow-x: hidden;
-    }
-
-    /* ── Scrollbar ── */
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(147,51,234,0.3); border-radius: 2px; }
 
-    /* ══════════════════════════════
-       NAVBAR
-    ══════════════════════════════ */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 0 48px; height: 68px;
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(8,9,26,0.8); backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      transition: all 0.3s;
-    }
-
-    .nav-logo {
-      display: flex; align-items: center; gap: 10px; text-decoration: none;
-    }
-    .nav-logo-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--violet), var(--indigo));
-      border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: white;
-      box-shadow: 0 0 16px var(--violet-glow);
-    }
-    .nav-logo-text {
-      font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 800;
-      background: linear-gradient(135deg, #fff, var(--violet-light));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-
+    /* NAVBAR */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 48px; height: 68px; display: flex; align-items: center; justify-content: space-between; background: rgba(8,9,26,0.8); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); transition: all 0.3s; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--violet), var(--indigo)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: white; box-shadow: 0 0 16px var(--violet-glow); }
+    .nav-logo-text { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #fff, var(--violet-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .nav-links { display: flex; align-items: center; gap: 32px; }
-    .nav-links a {
-      font-size: 14px; font-weight: 500; color: var(--text-faint);
-      text-decoration: none; transition: color 0.2s;
-    }
+    .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-faint); text-decoration: none; transition: color 0.2s; }
     .nav-links a:hover { color: var(--text); }
-
     .nav-cta { display: flex; align-items: center; gap: 12px; }
-    .btn-ghost {
-      padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
-      background: transparent; border: 1px solid var(--border);
-      color: var(--text-dim); cursor: pointer; transition: all 0.2s;
-      text-decoration: none; font-family: 'DM Sans', sans-serif;
-    }
+    .btn-ghost { padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; background: transparent; border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; transition: all 0.2s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
     .btn-ghost:hover { border-color: rgba(147,51,234,0.4); color: var(--text); }
-    .btn-primary {
-      padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 700;
-      background: linear-gradient(135deg, var(--violet), var(--magenta));
-      border: none; color: white; cursor: pointer; transition: all 0.22s;
-      box-shadow: 0 4px 16px var(--violet-glow); text-decoration: none;
-      font-family: 'DM Sans', sans-serif;
-    }
+    .btn-primary { padding: 9px 20px; border-radius: 10px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, var(--violet), var(--magenta)); border: none; color: white; cursor: pointer; transition: all 0.22s; box-shadow: 0 4px 16px var(--violet-glow); text-decoration: none; font-family: 'DM Sans', sans-serif; }
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--violet-glow); }
 
-    /* ══════════════════════════════
-       HERO
-    ══════════════════════════════ */
-    .hero {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      text-align: center; padding: 120px 24px 80px; position: relative; overflow: hidden;
-    }
-
-    /* Aurora hero */
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 120px 24px 80px; position: relative; overflow: hidden; }
     .hero-aurora { position: absolute; inset: 0; pointer-events: none; }
-    .ha {
-      position: absolute; border-radius: 50%;
-      filter: blur(90px); mix-blend-mode: screen;
-      animation: haFloat 12s ease-in-out infinite;
-    }
+    .ha { position: absolute; border-radius: 50%; filter: blur(90px); mix-blend-mode: screen; animation: haFloat 12s ease-in-out infinite; }
     .ha1 { width:700px; height:600px; background:radial-gradient(ellipse, rgba(110,30,210,0.6) 0%, transparent 65%); top:-200px; left:-200px; animation-delay:0s; }
     .ha2 { width:600px; height:600px; background:radial-gradient(ellipse, rgba(55,40,200,0.45) 0%, transparent 65%); bottom:-200px; right:-150px; animation-delay:-5s; animation-name:haFloat2; }
     .ha3 { width:400px; height:400px; background:radial-gradient(ellipse, rgba(180,40,220,0.35) 0%, transparent 65%); top:40%; left:50%; transform:translate(-50%,-50%); animation-delay:-9s; }
-
     @keyframes haFloat  { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(40px,-30px) scale(1.08)} 70%{transform:translate(-20px,25px) scale(0.95)} }
     @keyframes haFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(-40px,30px) scale(1.06)} 70%{transform:translate(25px,-20px) scale(0.97)} }
-
-    .hero-grid {
-      position: absolute; inset: 0;
-      background-image: radial-gradient(rgba(147,51,234,0.1) 1px, transparent 1px);
-      background-size: 40px 40px; pointer-events: none;
-    }
-
+    .hero-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(147,51,234,0.1) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
     .hero-content { position: relative; z-index: 1; max-width: 820px; }
-
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.25);
-      border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 500;
-      color: var(--violet-light); margin-bottom: 28px;
-      animation: fadeUp 0.6s ease forwards; opacity: 0;
-    }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.25); border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 500; color: var(--violet-light); margin-bottom: 28px; animation: fadeUp 0.6s ease forwards; opacity: 0; }
     .badge-dot { width: 7px; height: 7px; background: var(--violet-light); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(192,132,252,0.4)} 50%{box-shadow:0 0 0 6px rgba(192,132,252,0)} }
-
     @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-
-    .hero-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(44px, 7vw, 78px); font-weight: 800; line-height: 1.08;
-      letter-spacing: -2px; margin-bottom: 24px;
-      animation: fadeUp 0.6s ease 0.1s forwards; opacity: 0;
-    }
-    .hero-title em {
-      font-style: italic;
-      background: linear-gradient(135deg, var(--violet-light) 0%, var(--magenta) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-
-    .hero-sub {
-      font-size: 18px; color: var(--text-dim); line-height: 1.7; font-weight: 300;
-      max-width: 580px; margin: 0 auto 40px;
-      animation: fadeUp 0.6s ease 0.2s forwards; opacity: 0;
-    }
-
-    .hero-actions {
-      display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
-      animation: fadeUp 0.6s ease 0.3s forwards; opacity: 0;
-    }
-    .btn-hero {
-      padding: 15px 32px; border-radius: 14px; font-size: 16px; font-weight: 700;
-      background: linear-gradient(135deg, #7c22d4 0%, #9333ea 50%, #c026d3 100%);
-      border: none; color: white; cursor: pointer; transition: all 0.22s;
-      box-shadow: 0 6px 28px rgba(147,51,234,0.5); text-decoration: none;
-      font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 8px;
-    }
+    .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(44px, 7vw, 78px); font-weight: 800; line-height: 1.08; letter-spacing: -2px; margin-bottom: 24px; animation: fadeUp 0.6s ease 0.1s forwards; opacity: 0; }
+    .hero-title em { font-style: italic; background: linear-gradient(135deg, var(--violet-light) 0%, var(--magenta) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { font-size: 18px; color: var(--text-dim); line-height: 1.7; font-weight: 300; max-width: 580px; margin: 0 auto 40px; animation: fadeUp 0.6s ease 0.2s forwards; opacity: 0; }
+    .hero-actions { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; animation: fadeUp 0.6s ease 0.3s forwards; opacity: 0; }
+    .btn-hero { padding: 15px 32px; border-radius: 14px; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, #7c22d4 0%, #9333ea 50%, #c026d3 100%); border: none; color: white; cursor: pointer; transition: all 0.22s; box-shadow: 0 6px 28px rgba(147,51,234,0.5); text-decoration: none; font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 8px; }
     .btn-hero:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(147,51,234,0.6); }
-    .btn-hero-ghost {
-      padding: 15px 32px; border-radius: 14px; font-size: 16px; font-weight: 600;
-      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-      color: var(--text-dim); cursor: pointer; transition: all 0.22s; text-decoration: none;
-      font-family: 'DM Sans', sans-serif;
-    }
+    .btn-hero-ghost { padding: 15px 32px; border-radius: 14px; font-size: 16px; font-weight: 600; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; transition: all 0.22s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
     .btn-hero-ghost:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+    .hero-note { margin-top: 20px; font-size: 13px; color: var(--text-faint); animation: fadeUp 0.6s ease 0.4s forwards; opacity: 0; }
 
-    .hero-note {
-      margin-top: 20px; font-size: 13px; color: var(--text-faint);
-      animation: fadeUp 0.6s ease 0.4s forwards; opacity: 0;
-    }
-
-    /* Demo chat */
-    .hero-demo {
-      margin-top: 64px; position: relative; z-index: 1;
-      animation: fadeUp 0.8s ease 0.5s forwards; opacity: 0;
-    }
-    .demo-window {
-      background: rgba(11,13,30,0.9); border: 1px solid rgba(147,51,234,0.2);
-      border-radius: 20px; overflow: hidden; max-width: 700px; margin: 0 auto;
-      box-shadow: 0 32px 80px rgba(0,0,10,0.7), 0 0 0 1px rgba(147,51,234,0.1);
-    }
-    .demo-bar {
-      padding: 14px 20px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(0,0,0,0.3);
-    }
+    /* DEMO */
+    .hero-demo { margin-top: 64px; position: relative; z-index: 1; animation: fadeUp 0.8s ease 0.5s forwards; opacity: 0; }
+    .demo-window { background: rgba(11,13,30,0.9); border: 1px solid rgba(147,51,234,0.2); border-radius: 20px; overflow: hidden; max-width: 700px; margin: 0 auto; box-shadow: 0 32px 80px rgba(0,0,10,0.7), 0 0 0 1px rgba(147,51,234,0.1); }
+    .demo-bar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); }
     .demo-dot { width: 11px; height: 11px; border-radius: 50%; }
     .demo-dot:nth-child(1) { background: #ff5f57; }
     .demo-dot:nth-child(2) { background: #febc2e; }
     .demo-dot:nth-child(3) { background: #28c840; }
     .demo-title { flex: 1; text-align: center; font-size: 12px; color: var(--text-faint); }
-
     .demo-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-
-    .demo-msg-user {
-      display: flex; justify-content: flex-end;
-    }
-    .demo-bubble-user {
-      padding: 10px 16px; border-radius: 16px 16px 4px 16px;
-      background: linear-gradient(135deg, var(--violet), #6d28d9);
-      font-size: 14px; max-width: 80%;
-      box-shadow: 0 4px 12px var(--violet-glow);
-    }
+    .demo-msg-user { display: flex; justify-content: flex-end; }
+    .demo-bubble-user { padding: 10px 16px; border-radius: 16px 16px 4px 16px; background: linear-gradient(135deg, var(--violet), #6d28d9); font-size: 14px; max-width: 80%; box-shadow: 0 4px 12px var(--violet-glow); }
     .demo-msg-ai { display: flex; gap: 10px; align-items: flex-start; }
-    .demo-ai-icon {
-      width: 28px; height: 28px; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--violet), var(--magenta));
-      border-radius: 8px; display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 700; color: white;
-    }
-    .demo-bubble-ai {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 4px 16px 16px 16px; padding: 12px 16px;
-      font-size: 14px; color: var(--text-dim); line-height: 1.6; max-width: 85%;
-    }
-    .demo-table {
-      width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px;
-    }
+    .demo-ai-icon { width: 28px; height: 28px; flex-shrink: 0; background: linear-gradient(135deg, var(--violet), var(--magenta)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 700; color: white; }
+    .demo-bubble-ai { background: var(--glass); border: 1px solid var(--border); border-radius: 4px 16px 16px 16px; padding: 12px 16px; font-size: 14px; color: var(--text-dim); line-height: 1.6; max-width: 85%; }
+    .demo-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
     .demo-table th { background: var(--violet-dim); color: var(--violet-light); padding: 6px 10px; text-align: left; }
     .demo-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--text-dim); }
     .demo-table tr:last-child td { border-bottom: none; }
 
-    /* ══════════════════════════════
-       SECCIÓN: CÓMO FUNCIONA
-    ══════════════════════════════ */
+    /* SECCIONES */
     section { padding: 100px 24px; }
-
-    .section-label {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.2);
-      border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600;
-      color: var(--violet-light); text-transform: uppercase; letter-spacing: 1px;
-      margin-bottom: 20px;
-    }
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(32px, 5vw, 52px); font-weight: 800; line-height: 1.1;
-      letter-spacing: -1.5px; margin-bottom: 16px;
-    }
+    .section-label { display: inline-flex; align-items: center; gap: 6px; background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.2); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600; color: var(--violet-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 52px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 16px; }
     .section-title em { font-style: italic; color: var(--violet-light); }
     .section-sub { font-size: 16px; color: var(--text-dim); line-height: 1.7; max-width: 520px; }
-
     .section-center { text-align: center; }
     .section-center .section-sub { margin: 0 auto; }
 
-    /* Steps */
-    .steps {
-      max-width: 1000px; margin: 64px auto 0;
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;
-    }
-    .step {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 20px; padding: 28px; position: relative; overflow: hidden;
-      transition: all 0.3s;
-    }
-    .step::before {
-      content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(147,51,234,0.4), transparent);
-    }
+    /* STEPS */
+    .steps { max-width: 1000px; margin: 64px auto 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .step { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 28px; position: relative; overflow: hidden; transition: all 0.3s; }
+    .step::before { content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 1px; background: linear-gradient(90deg, transparent, rgba(147,51,234,0.4), transparent); }
     .step:hover { border-color: rgba(147,51,234,0.3); transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,10,0.4); }
-    .step-num {
-      font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 800;
-      background: linear-gradient(135deg, rgba(147,51,234,0.3), rgba(192,132,252,0.2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 16px; line-height: 1;
-    }
+    .step-num { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 800; background: linear-gradient(135deg, rgba(147,51,234,0.3), rgba(192,132,252,0.2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; line-height: 1; }
     .step-icon { font-size: 28px; margin-bottom: 14px; }
     .step-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
     .step-desc { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
 
-    /* ══════════════════════════════
-       FEATURES
-    ══════════════════════════════ */
+    /* FEATURES */
     .features-bg { background: var(--bg-2); }
-
-    .features-grid {
-      max-width: 1100px; margin: 64px auto 0;
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
-    }
-    .feat {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 18px; padding: 26px; transition: all 0.3s;
-    }
+    .features-grid { max-width: 1100px; margin: 64px auto 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .feat { background: var(--glass); border: 1px solid var(--border); border-radius: 18px; padding: 26px; transition: all 0.3s; }
     .feat:hover { border-color: rgba(147,51,234,0.3); transform: translateY(-3px); }
-    .feat-icon {
-      width: 48px; height: 48px; border-radius: 14px;
-      background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; margin-bottom: 18px;
-    }
+    .feat-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.2); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; }
     .feat-title { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
     .feat-desc { font-size: 14px; color: var(--text-dim); line-height: 1.65; }
 
-    /* ══════════════════════════════
-       COMPATIBILIDAD
-    ══════════════════════════════ */
-    .compat-row {
-      max-width: 900px; margin: 48px auto 0;
-      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
-    }
-    .compat-chip {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px 20px; transition: all 0.2s;
-    }
+    /* COMPATIBILIDAD */
+    .compat-row { max-width: 900px; margin: 48px auto 0; display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+    .compat-chip { display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1px solid var(--border); border-radius: 14px; padding: 14px 20px; transition: all 0.2s; }
     .compat-chip:hover { border-color: rgba(147,51,234,0.3); background: var(--violet-dim); }
     .compat-chip-icon { font-size: 24px; }
-    .compat-chip-info { }
     .compat-chip-name { font-size: 14px; font-weight: 600; }
     .compat-chip-sub { font-size: 12px; color: var(--text-faint); }
 
-    /* ══════════════════════════════
-       PRECIOS
-    ══════════════════════════════ */
-    .pricing-grid {
-      max-width: 1000px; margin: 64px auto 0;
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
-      align-items: start;
-    }
-    .plan {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 22px; padding: 32px; position: relative; overflow: hidden;
-      transition: all 0.3s;
-    }
-    .plan.featured {
-      background: linear-gradient(145deg, rgba(147,51,234,0.15), rgba(192,38,211,0.08));
-      border-color: rgba(147,51,234,0.4);
-      box-shadow: 0 0 0 1px rgba(147,51,234,0.2), 0 24px 60px rgba(147,51,234,0.15);
-    }
-    .plan.featured::before {
-      content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(192,132,252,0.8), transparent);
-    }
+    /* PRECIOS */
+    .pricing-grid { max-width: 1000px; margin: 64px auto 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; align-items: start; }
+    .plan { background: var(--glass); border: 1px solid var(--border); border-radius: 22px; padding: 32px; position: relative; overflow: hidden; transition: all 0.3s; }
+    .plan.featured { background: linear-gradient(145deg, rgba(147,51,234,0.15), rgba(192,38,211,0.08)); border-color: rgba(147,51,234,0.4); box-shadow: 0 0 0 1px rgba(147,51,234,0.2), 0 24px 60px rgba(147,51,234,0.15); }
+    .plan.featured::before { content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px; background: linear-gradient(90deg, transparent, rgba(192,132,252,0.8), transparent); }
     .plan:hover:not(.featured) { border-color: rgba(147,51,234,0.25); transform: translateY(-3px); }
     .plan.featured:hover { transform: translateY(-4px); }
-
-    .plan-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: linear-gradient(135deg, var(--violet), var(--magenta));
-      border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 700;
-      color: white; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;
-    }
+    .plan-badge { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, var(--violet), var(--magenta)); border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 700; color: white; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
     .plan-name { font-size: 13px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .plan-price {
-      font-family: 'Playfair Display', serif; font-size: 44px; font-weight: 800;
-      line-height: 1; margin-bottom: 4px;
-    }
+    .plan-price { font-family: 'Playfair Display', serif; font-size: 44px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
     .plan-price sup { font-size: 20px; vertical-align: super; }
     .plan-price span { font-size: 16px; font-weight: 400; color: var(--text-faint); }
     .plan-desc { font-size: 13px; color: var(--text-faint); margin-bottom: 24px; line-height: 1.5; }
-
     .plan-features { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-    .pf {
-      display: flex; align-items: flex-start; gap: 10px;
-      font-size: 14px; color: var(--text-dim);
-    }
+    .pf { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-dim); }
     .pf-check { color: var(--violet-light); flex-shrink: 0; margin-top: 1px; }
     .pf-check svg { width: 14px; height: 14px; }
-
-    .btn-plan {
-      width: 100%; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700;
-      cursor: pointer; transition: all 0.22s; text-decoration: none; display: block; text-align: center;
-      font-family: 'DM Sans', sans-serif;
-    }
-    .btn-plan-outline {
-      background: transparent; border: 1px solid var(--border); color: var(--text-dim);
-    }
+    .btn-plan { width: 100%; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.22s; text-decoration: none; display: block; text-align: center; font-family: 'DM Sans', sans-serif; }
+    .btn-plan-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
     .btn-plan-outline:hover { border-color: rgba(147,51,234,0.4); color: var(--text); }
-    .btn-plan-filled {
-      background: linear-gradient(135deg, var(--violet), var(--magenta));
-      border: none; color: white;
-      box-shadow: 0 4px 18px var(--violet-glow);
-    }
+    .btn-plan-filled { background: linear-gradient(135deg, var(--violet), var(--magenta)); border: none; color: white; box-shadow: 0 4px 18px var(--violet-glow); }
     .btn-plan-filled:hover { transform: translateY(-1px); box-shadow: 0 8px 28px var(--violet-glow); }
 
-    /* ══════════════════════════════
-       CTA FINAL
-    ══════════════════════════════ */
-    .cta-section {
-      text-align: center; padding: 100px 24px;
-      position: relative; overflow: hidden;
-    }
+    /* REGIÓN SELECTOR */
+    .region-selector { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 32px; }
+    .region-btn { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border); background: transparent; color: var(--text-faint); font-family: 'DM Sans', sans-serif; }
+    .region-btn.active { background: var(--violet-dim); border-color: rgba(147,51,234,0.4); color: var(--violet-light); }
+    .region-btn:hover:not(.active) { border-color: rgba(147,51,234,0.25); color: var(--text-dim); }
+    .region-note { font-size: 12px; color: var(--text-faint); text-align: center; margin-top: 16px; }
+
+    /* CTA */
+    .cta-section { text-align: center; padding: 100px 24px; position: relative; overflow: hidden; }
     .cta-aurora { position: absolute; inset: 0; pointer-events: none; }
-    .ca {
-      position: absolute; border-radius: 50%; filter: blur(80px); mix-blend-mode: screen;
-    }
+    .ca { position: absolute; border-radius: 50%; filter: blur(80px); mix-blend-mode: screen; }
     .ca1 { width:500px; height:400px; background:radial-gradient(ellipse, rgba(110,30,210,0.5), transparent 65%); top:-100px; left:50%; transform:translateX(-50%); }
     .ca2 { width:400px; height:300px; background:radial-gradient(ellipse, rgba(180,30,210,0.35), transparent 65%); bottom:-80px; left:50%; transform:translateX(-50%); }
-
     .cta-content { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
-    .cta-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(36px, 5vw, 56px); font-weight: 800; line-height: 1.1;
-      letter-spacing: -1.5px; margin-bottom: 20px;
-    }
+    .cta-title { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 56px); font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
     .cta-title em { font-style: italic; color: var(--violet-light); }
     .cta-sub { font-size: 16px; color: var(--text-dim); line-height: 1.7; margin-bottom: 36px; }
 
-    /* ══════════════════════════════
-       FOOTER
-    ══════════════════════════════ */
-    footer {
-      padding: 40px 48px; border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
-    }
+    /* FOOTER */
+    footer { padding: 40px 48px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
     .footer-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-    .footer-logo-text {
-      font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 800;
-      background: linear-gradient(135deg, #fff, var(--violet-light));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
+    .footer-logo-text { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 800; background: linear-gradient(135deg, #fff, var(--violet-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .footer-links { display: flex; gap: 24px; }
     .footer-links a { font-size: 13px; color: var(--text-faint); text-decoration: none; transition: color 0.2s; }
     .footer-links a:hover { color: var(--text-dim); }
     .footer-copy { font-size: 12px; color: var(--text-faint); }
 
-    /* ══════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════ */
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
       .nav-links { display: none; }
@@ -432,7 +184,6 @@
 </head>
 <body>
 
-  <!-- NAVBAR -->
   <nav>
     <a class="nav-logo" href="#">
       <div class="nav-logo-icon">Y</div>
@@ -449,7 +200,6 @@
     </div>
   </nav>
 
-  <!-- HERO -->
   <div class="hero">
     <div class="hero-aurora">
       <div class="ha ha1"></div>
@@ -457,21 +207,17 @@
       <div class="ha ha3"></div>
     </div>
     <div class="hero-grid"></div>
-
     <div class="hero-content">
       <div class="hero-badge">
         <div class="badge-dot"></div>
-        Ahora disponible en México y España
+        Para negocios que hablan español
       </div>
-
       <h1 class="hero-title">
         Pregunta a tus datos<br>como si hablaras con<br><em>un experto</em>
       </h1>
-
       <p class="hero-sub">
         YvexIQ convierte cualquier pregunta en lenguaje natural en análisis precisos de tu negocio. Sin SQL, sin hojas de cálculo, sin complicaciones.
       </p>
-
       <div class="hero-actions">
         <a class="btn-hero" href="login.html">
           Empieza gratis
@@ -479,10 +225,7 @@
         </a>
         <a class="btn-hero-ghost" href="#como-funciona">Ver cómo funciona</a>
       </div>
-
-      <p class="hero-note">✦ Sin tarjeta de crédito · 3 consultas gratis al día · Cancela cuando quieras</p>
-
-      <!-- Demo window -->
+      <p class="hero-note">✦ Sin tarjeta de crédito · 10 consultas gratis al día · Cancela cuando quieras</p>
       <div class="hero-demo">
         <div class="demo-window">
           <div class="demo-bar">
@@ -517,7 +260,6 @@
     </div>
   </div>
 
-  <!-- CÓMO FUNCIONA -->
   <section id="como-funciona">
     <div style="max-width:1100px;margin:0 auto;">
       <div class="section-center">
@@ -525,7 +267,6 @@
         <h2 class="section-title">Tan simple como <em>hacer una pregunta</em></h2>
         <p class="section-sub">Tres pasos y tu negocio empieza a hablarte en datos.</p>
       </div>
-
       <div class="steps">
         <div class="step">
           <div class="step-num">01</div>
@@ -549,115 +290,62 @@
     </div>
   </section>
 
-  <!-- FEATURES -->
   <section id="features" class="features-bg">
     <div style="max-width:1100px;margin:0 auto;">
       <div class="section-center">
         <div class="section-label">Funciones</div>
         <h2 class="section-title">Todo lo que necesitas para<br><em>entender tu negocio</em></h2>
       </div>
-
       <div class="features-grid">
-        <div class="feat">
-          <div class="feat-icon">🧠</div>
-          <div class="feat-title">IA generativa avanzada</div>
-          <div class="feat-desc">Powered by Claude Haiku — el modelo más preciso para análisis de datos de negocio. Respuestas en menos de 3 segundos.</div>
-        </div>
-        <div class="feat">
-          <div class="feat-icon">📊</div>
-          <div class="feat-title">Gráficos automáticos</div>
-          <div class="feat-desc">YvexIQ decide qué tipo de gráfico es más apropiado para cada consulta y lo genera automáticamente con visualizaciones interactivas.</div>
-        </div>
-        <div class="feat">
-          <div class="feat-icon">💬</div>
-          <div class="feat-title">Explicaciones en lenguaje natural</div>
-          <div class="feat-desc">No solo datos — también interpretaciones claras. Como tener un analista de negocio disponible 24/7.</div>
-        </div>
-        <div class="feat">
-          <div class="feat-icon">🔒</div>
-          <div class="feat-title">Tus datos, tu privacidad</div>
-          <div class="feat-desc">Los datos nunca salen de tu control. El agente local sincroniza de forma segura y encriptada con tu cuenta personal.</div>
-        </div>
-        <div class="feat">
-          <div class="feat-icon">🔌</div>
-          <div class="feat-title">Compatible con tu software</div>
-          <div class="feat-desc">Funciona con Eleventa, CONTPAQi, Excel y CSV. Sin necesidad de cambiar el software que ya usas en tu negocio.</div>
-        </div>
-        <div class="feat">
-          <div class="feat-icon">📱</div>
-          <div class="feat-title">Acceso desde cualquier lugar</div>
-          <div class="feat-desc">Consulta los datos de tu negocio desde el navegador, en cualquier dispositivo, sin necesidad de estar en tu computadora.</div>
-        </div>
+        <div class="feat"><div class="feat-icon">🧠</div><div class="feat-title">IA generativa avanzada</div><div class="feat-desc">Powered by Claude Haiku — el modelo más preciso para análisis de datos de negocio. Respuestas en menos de 3 segundos.</div></div>
+        <div class="feat"><div class="feat-icon">📊</div><div class="feat-title">Gráficos automáticos</div><div class="feat-desc">YvexIQ decide qué tipo de gráfico es más apropiado para cada consulta y lo genera automáticamente con visualizaciones interactivas.</div></div>
+        <div class="feat"><div class="feat-icon">💬</div><div class="feat-title">Explicaciones en lenguaje natural</div><div class="feat-desc">No solo datos — también interpretaciones claras. Como tener un analista de negocio disponible 24/7.</div></div>
+        <div class="feat"><div class="feat-icon">🔒</div><div class="feat-title">Tus datos, tu privacidad</div><div class="feat-desc">Los datos nunca salen de tu control. El agente local sincroniza de forma segura y encriptada con tu cuenta personal.</div></div>
+        <div class="feat"><div class="feat-icon">🔌</div><div class="feat-title">Compatible con tu software</div><div class="feat-desc">Funciona con Eleventa, CONTPAQi, Excel y CSV. Sin necesidad de cambiar el software que ya usas en tu negocio.</div></div>
+        <div class="feat"><div class="feat-icon">📱</div><div class="feat-title">Acceso desde cualquier lugar</div><div class="feat-desc">Consulta los datos de tu negocio desde el navegador, en cualquier dispositivo, sin necesidad de estar en tu computadora.</div></div>
       </div>
     </div>
   </section>
 
-  <!-- COMPATIBILIDAD -->
   <section>
     <div style="max-width:1100px;margin:0 auto;">
       <div class="section-center">
         <div class="section-label">Compatibilidad</div>
         <h2 class="section-title">Funciona con el software<br><em>que ya usas</em></h2>
-        <p class="section-sub">Compatible con los sistemas más populares en México y España. Sin migraciones ni cambios.</p>
+        <p class="section-sub">Compatible con los sistemas más populares en México, España y LATAM. Sin migraciones ni cambios.</p>
       </div>
-
       <div class="compat-row">
-        <div class="compat-chip">
-          <div class="compat-chip-icon">🔥</div>
-          <div class="compat-chip-info">
-            <div class="compat-chip-name">Eleventa</div>
-            <div class="compat-chip-sub">Punto de venta México</div>
-          </div>
-        </div>
-        <div class="compat-chip">
-          <div class="compat-chip-icon">📋</div>
-          <div class="compat-chip-info">
-            <div class="compat-chip-name">CONTPAQi</div>
-            <div class="compat-chip-sub">Contabilidad y nómina</div>
-          </div>
-        </div>
-        <div class="compat-chip">
-          <div class="compat-chip-icon">📊</div>
-          <div class="compat-chip-info">
-            <div class="compat-chip-name">Excel / CSV</div>
-            <div class="compat-chip-sub">Universal</div>
-          </div>
-        </div>
-        <div class="compat-chip">
-          <div class="compat-chip-icon">🔥</div>
-          <div class="compat-chip-info">
-            <div class="compat-chip-name">Firebird</div>
-            <div class="compat-chip-sub">Motor de BD legacy</div>
-          </div>
-        </div>
-        <div class="compat-chip">
-          <div class="compat-chip-icon">🔜</div>
-          <div class="compat-chip-info">
-            <div class="compat-chip-name">Más próximamente</div>
-            <div class="compat-chip-sub">MySQL, SQL Server...</div>
-          </div>
-        </div>
+        <div class="compat-chip"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Eleventa</div><div class="compat-chip-sub">Punto de venta México</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">📋</div><div><div class="compat-chip-name">CONTPAQi</div><div class="compat-chip-sub">Contabilidad y nómina</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">📊</div><div><div class="compat-chip-name">Excel / CSV</div><div class="compat-chip-sub">Universal</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Firebird</div><div class="compat-chip-sub">Motor de BD legacy</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">🔜</div><div><div class="compat-chip-name">Más próximamente</div><div class="compat-chip-sub">MySQL, SQL Server...</div></div></div>
       </div>
     </div>
   </section>
 
-  <!-- PRECIOS -->
   <section id="precios" class="features-bg">
     <div style="max-width:1100px;margin:0 auto;">
       <div class="section-center">
         <div class="section-label">Precios</div>
         <h2 class="section-title">Simple, transparente,<br><em>sin sorpresas</em></h2>
-        <p class="section-sub">Empieza gratis y escala cuando lo necesites. Precios en MXN para México.</p>
+        <p class="section-sub">Empieza gratis y escala cuando lo necesites.</p>
+      </div>
+
+      <!-- Selector de región -->
+      <div class="region-selector" style="margin-top:32px;">
+        <button class="region-btn active" onclick="setRegion('mx', this)">🇲🇽 México</button>
+        <button class="region-btn" onclick="setRegion('es', this)">🇪🇸 España</button>
+        <button class="region-btn" onclick="setRegion('latam', this)">🌎 LATAM</button>
       </div>
 
       <div class="pricing-grid">
-        <!-- Gratuito -->
         <div class="plan">
           <div class="plan-name">Gratuito</div>
-          <div class="plan-price"><sup>$</sup>0<span>/mes</span></div>
+          <div class="plan-price"><sup id="sym-0">$</sup><span id="price-0">0</span><span id="per-0">/mes</span></div>
           <div class="plan-desc">Para explorar YvexIQ y ver si es lo que necesitas.</div>
           <div class="plan-features">
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>3 consultas por día</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>10 consultas por día</div>
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>1 conexión de base de datos</div>
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Tablas y gráficos básicos</div>
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Explicaciones en lenguaje natural</div>
@@ -665,11 +353,10 @@
           <a class="btn-plan btn-plan-outline" href="login.html">Empezar gratis</a>
         </div>
 
-        <!-- Básico -->
         <div class="plan featured">
           <div class="plan-badge">⚡ Más popular</div>
           <div class="plan-name">Básico</div>
-          <div class="plan-price"><sup>$</sup>150<span>/mes MXN</span></div>
+          <div class="plan-price"><sup id="sym-1">$</sup><span id="price-1">150</span><span id="per-1">/mes MXN</span></div>
           <div class="plan-desc">Para negocios que consultan sus datos a diario.</div>
           <div class="plan-features">
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>30 consultas por día</div>
@@ -681,10 +368,9 @@
           <a class="btn-plan btn-plan-filled" href="login.html">Empezar ahora</a>
         </div>
 
-        <!-- Pro -->
         <div class="plan">
           <div class="plan-name">Pro</div>
-          <div class="plan-price"><sup>$</sup>300<span>/mes MXN</span></div>
+          <div class="plan-price"><sup id="sym-2">$</sup><span id="price-2">300</span><span id="per-2">/mes MXN</span></div>
           <div class="plan-desc">Para negocios que necesitan análisis avanzado sin límites.</div>
           <div class="plan-features">
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Consultas ilimitadas</div>
@@ -696,10 +382,10 @@
           <a class="btn-plan btn-plan-outline" href="login.html">Empezar ahora</a>
         </div>
       </div>
+      <p class="region-note" id="region-note">Precios en pesos mexicanos (MXN). Impuestos no incluidos.</p>
     </div>
   </section>
 
-  <!-- CTA FINAL -->
   <div class="cta-section">
     <div class="cta-aurora">
       <div class="ca ca1"></div>
@@ -707,7 +393,7 @@
     </div>
     <div class="cta-content">
       <h2 class="cta-title">Tu negocio tiene<br><em>muchas respuestas.</em><br>Solo hay que preguntar.</h2>
-      <p class="cta-sub">Únete a los negocios que ya toman decisiones basadas en datos, sin necesidad de ser expertos en tecnología.</p>
+      <p class="cta-sub">Únete a los negocios hispanohablantes que ya toman decisiones basadas en datos, sin necesidad de ser expertos en tecnología.</p>
       <a class="btn-hero" href="login.html">
         Empieza gratis hoy
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -715,7 +401,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <a class="footer-logo" href="#">
       <div class="nav-logo-icon" style="width:28px;height:28px;font-size:13px;">Y</div>
@@ -726,8 +411,51 @@
       <a href="#">Privacidad</a>
       <a href="#">Contacto</a>
     </div>
-    <div class="footer-copy">© 2025 YvexIQ. Hecho en México 🇲🇽</div>
+    <div class="footer-copy">© 2026 YvexIQ. Hecho con ❤️ en español 🌎</div>
   </footer>
 
+  <script>
+    const PRECIOS = {
+      mx:    { syms: ['$', '$', '$'],    prices: ['0', '150', '300'], pers: ['/mes', '/mes MXN', '/mes MXN'], note: 'Precios en pesos mexicanos (MXN). Impuestos no incluidos.' },
+      es:    { syms: ['€', '€', '€'],    prices: ['0', '9.99', '19.99'], pers: ['/mes', '/mes EUR', '/mes EUR'], note: 'Precios en euros (EUR). IVA no incluido.' },
+      latam: { syms: ['$', '$', '$'],    prices: ['0', '8', '16'], pers: ['/mes', '/mes USD', '/mes USD'], note: 'Precios en dólares estadounidenses (USD). Impuestos no incluidos.' }
+    };
+
+    function setRegion(region, btn) {
+      document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const p = PRECIOS[region];
+      for (let i = 0; i < 3; i++) {
+        document.getElementById('sym-' + i).textContent = p.syms[i];
+        document.getElementById('price-' + i).textContent = p.prices[i];
+        document.getElementById('per-' + i).textContent = p.pers[i];
+      }
+      document.getElementById('region-note').textContent = p.note;
+    }
+
+    // Detección automática por geolocalización
+    async function detectarRegion() {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        const country = data.country_code;
+        if (country === 'MX') {
+          setRegion('mx', document.querySelector('.region-btn:nth-child(1)'));
+        } else if (['ES', 'PT', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH'].includes(country)) {
+          setRegion('es', document.querySelector('.region-btn:nth-child(2)'));
+          document.querySelector('.region-btn:nth-child(2)').classList.add('active');
+          document.querySelector('.region-btn:nth-child(1)').classList.remove('active');
+        } else {
+          setRegion('latam', document.querySelector('.region-btn:nth-child(3)'));
+          document.querySelector('.region-btn:nth-child(3)').classList.add('active');
+          document.querySelector('.region-btn:nth-child(1)').classList.remove('active');
+        }
+      } catch {
+        // Si falla la detección, queda México por defecto
+      }
+    }
+
+    detectarRegion();
+  </script>
 </body>
 </html>
