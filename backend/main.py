@@ -84,14 +84,6 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         max_age=60 * 60 * 24 * 7
     )
     return response
-
-@app.post("/generar_sql")
-def test_sql():
-    schema = "CREATE TABLE clientes (id SERIAL PRIMARY KEY, nombre VARCHAR(255), apellido VARCHAR(255), email VARCHAR(255)); " \
-    "CREATE TABLE ventas (id SERIAL PRIMARY KEY, id_cliente INT, fecha DATE, monto DECIMAL(10,2)); "
-    sql = generate_sql("¿Cuantos clientes hay?", schema)
-    return {"sql": sql}
-
 @app.post("/consultar")
 def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
     verificar_limite_consultas(current_user, db)
@@ -117,7 +109,7 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
                 usuario_id=current_user.id,
                 conexion_id=conexion_id,
                 pregunta=consulta.pregunta,
-                respuesta=str(resultados),
+                respuesta=str(resultados[:30]),
                 fecha=datetime.utcnow()
             )
             db.add(db_historial)
@@ -151,17 +143,24 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
 
 @app.post("/sync")
 def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db), archivo: UploadFile = File(...)):
+    EXTENSIONES_PERMITIDAS = {".csv", ".xlsx", ".xls", ".fdb"}
+    extension = os.path.splitext(archivo.filename)[1].lower()
+    if extension not in EXTENSIONES_PERMITIDAS:
+        raise HTTPException(status_code=400, detail="Tipo de archivo no permitido. Solo CSV, Excel y Firebird.")
+
     db_conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
     if db_conexion is None:
         raise HTTPException(status_code=404, detail="Conexion no encontrada")
     if db_conexion.usuario_id != current_user.id:
         raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+
     contenido = archivo.file.read()
     carpeta = f"data/{current_user.id}/{conexion_id}"
     os.makedirs(carpeta, exist_ok=True)
     ruta_destino = os.path.join(carpeta, archivo.filename)
     with open(ruta_destino, "wb") as f:
         f.write(contenido)
+
     db_conexion.fecha_ultima_sincronizacion = datetime.utcnow()
     db.commit()
     return {"message": "Archivo sincronizado exitosamente"}

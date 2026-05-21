@@ -16,6 +16,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY no está configurada en el .env")
 
 def hash_password(password: str):
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")

@@ -332,13 +332,6 @@
         <p class="section-sub">Empieza gratis y escala cuando lo necesites.</p>
       </div>
 
-      <!-- Selector de región -->
-      <div class="region-selector" style="margin-top:32px;">
-        <button class="region-btn active" onclick="setRegion('mx', this)">🇲🇽 México</button>
-        <button class="region-btn" onclick="setRegion('es', this)">🇪🇸 España</button>
-        <button class="region-btn" onclick="setRegion('latam', this)">🌎 LATAM</button>
-      </div>
-
       <div class="pricing-grid">
         <div class="plan">
           <div class="plan-name">Gratuito</div>
@@ -421,38 +414,31 @@
       latam: { syms: ['$', '$', '$'],    prices: ['0', '8', '16'], pers: ['/mes', '/mes USD', '/mes USD'], note: 'Precios en dólares estadounidenses (USD). Impuestos no incluidos.' }
     };
 
-    function setRegion(region, btn) {
-      document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const p = PRECIOS[region];
-      for (let i = 0; i < 3; i++) {
-        document.getElementById('sym-' + i).textContent = p.syms[i];
-        document.getElementById('price-' + i).textContent = p.prices[i];
-        document.getElementById('per-' + i).textContent = p.pers[i];
-      }
-      document.getElementById('region-note').textContent = p.note;
+    function setRegion(region) {
+        const p = PRECIOS[region];
+        for (let i = 0; i < 3; i++) {
+            document.getElementById('sym-' + i).textContent = p.syms[i];
+            document.getElementById('price-' + i).textContent = p.prices[i];
+            document.getElementById('per-' + i).textContent = p.pers[i];
+        }
+        document.getElementById('region-note').textContent = p.note;
     }
 
-    // Detección automática por geolocalización
     async function detectarRegion() {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        const country = data.country_code;
-        if (country === 'MX') {
-          setRegion('mx', document.querySelector('.region-btn:nth-child(1)'));
-        } else if (['ES', 'PT', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH'].includes(country)) {
-          setRegion('es', document.querySelector('.region-btn:nth-child(2)'));
-          document.querySelector('.region-btn:nth-child(2)').classList.add('active');
-          document.querySelector('.region-btn:nth-child(1)').classList.remove('active');
-        } else {
-          setRegion('latam', document.querySelector('.region-btn:nth-child(3)'));
-          document.querySelector('.region-btn:nth-child(3)').classList.add('active');
-          document.querySelector('.region-btn:nth-child(1)').classList.remove('active');
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            const country = data.country_code;
+            if (country === 'MX') {
+                setRegion('mx');
+            } else if (['ES', 'PT', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH'].includes(country)) {
+                setRegion('es');
+            } else {
+                setRegion('latam');
+            }
+        } catch {
+            setRegion('mx');
         }
-      } catch {
-        // Si falla la detección, queda México por defecto
-      }
     }
 
     detectarRegion();

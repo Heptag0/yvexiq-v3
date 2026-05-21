@@ -1,5 +1,4 @@
 import pandas as pd
-import pandasql as ps
 import fdb
 import os
 
@@ -13,7 +12,6 @@ def detectar_schema(ruta_archivo):
             user=os.getenv('FIREBIRD_USER'),
             password=os.getenv('FIREBIRD_PASSWORD')
         )
-
         tablas = pd.read_sql("SELECT RDB$RELATION_NAME FROM RDB$RELATIONS WHERE RDB$SYSTEM_FLAG = 0 AND RDB$VIEW_BLR IS NULL", conn)
         schema = "Tablas disponibles:\n"
         for tabla in tablas["RDB$RELATION_NAME"]:
@@ -27,7 +25,7 @@ def detectar_schema(ruta_archivo):
                     ejemplos = ejemplos_df[columna].dropna().unique().tolist()
                 except:
                     ejemplos = []
-            schema += f"- {columna} (ejemplos: {ejemplos})\n"
+                schema += f"- {columna} (ejemplos: {ejemplos})\n"  # <-- dentro del loop
         return schema
     else:
         df = pd.read_excel(ruta_archivo)
@@ -49,4 +47,3 @@ def detectar_schema_sync(carpeta):
                 ejemplos = df[columna].dropna().unique()[:3].tolist()
                 schema += f"- {columna} (ejemplos: {ejemplos})\n"
     return schema
-        

@@ -3,27 +3,33 @@ import os
 def buscar_archivos():
     encontrados = []
     carpetas_comunes = [
+        os.path.expanduser("~/Desktop"),
+        os.path.expanduser("~/Documents"),
         "C:/Users",
         "C:/Program Files",
-        "C:/Program Files (x86)"
+        "C:/Program Files (x86)",
+        "D:/",
+        "E:/"
     ]
     rutas_excluidas = [
-    "miniconda", "AppData", "node_modules", 
-    "site-packages", "Firebird_2_5"
+        "miniconda", "AppData", "node_modules",
+        "site-packages", "Firebird_2_5", ".git",
+        "Windows", "System32"
     ]
     for carpeta in carpetas_comunes:
+        if not os.path.exists(carpeta):
+            continue
         for ruta, carpetas, archivos in os.walk(carpeta):
+            if any(excluida in ruta for excluida in rutas_excluidas):
+                continue
             for archivo in archivos:
-                if archivo.lower().endswith(".csv") or archivo.lower().endswith(".fdb") or archivo.lower().endswith(".xlsx"):
-                    if any(ruta_excluida in ruta for ruta_excluida in rutas_excluidas):
-                        continue
+                if archivo.lower().endswith((".csv", ".fdb", ".xlsx")):
                     ruta_completa = os.path.join(ruta, archivo)
-                    if os.path.getsize(ruta_completa) > 10240:
-                        encontrados.append(os.path.join(ruta, archivo))
-    if not encontrados:
-        ruta_manual = input("No se encontraron archivos. Ingresa la ruta manualmente: ")
-        if os.path.exists(ruta_manual):
-            encontrados.append(ruta_manual)
+                    try:
+                        if os.path.getsize(ruta_completa) > 10240:
+                            encontrados.append(ruta_completa)
+                    except (PermissionError, OSError):
+                        continue
     return encontrados
 
 

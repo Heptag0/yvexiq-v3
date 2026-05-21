@@ -40,7 +40,9 @@ class YvexIQApp:
         self._onboarding_temporal = ventana_onboarding
 
     def _volver_a_principal(self):
-        self._onboarding_temporal.close()
+        if self._onboarding_temporal:
+            self._onboarding_temporal.close()
+            self._onboarding_temporal = None
         if isinstance(self.ventana, MainWindow):
             self.ventana._cargar_conexiones()
             self.ventana.show()
@@ -74,4 +76,5 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
         traceback.print_exc()
-        input("Presiona Enter para cerrar...")
+        from PySide6.QtWidgets import QApplication
+        QApplication.quit()

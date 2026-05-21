@@ -1,6 +1,7 @@
 import anthropic
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
 client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
@@ -11,46 +12,88 @@ def generate_sql(question, schema, tipo_db="csv"):
         instruccion_dialecto = "Usa sintaxis Firebird. En vez de LIMIT usa FIRST. Ejemplo: SELECT FIRST 5 * FROM tabla."
     else:
         instruccion_dialecto = "Usa sintaxis SQLite. En vez de TOP usa LIMIT al final."
-    mensaje =client.messages.create(
+
+    mensaje = client.messages.create(
         model=model,
         max_tokens=1024,
+        timeout=30,
         messages=[{"role": "user",
-                   "content": f"Eres un experto en SQL y estás asistiendo a un negocio. Genera un código SQL para la siguiente pregunta: {question} usando el siguiente esquema: {schema} Solo responde con el código SQL puro, sin explicaciones, sin markdown, sin backticks. {instruccion_dialecto}. Tambien usa exactamente los nombres de columnas y tablas que aparecen en el schema, sin modificarlos ni abreviarlos. IMPORTANTE, si la pregunta no esta relacionada con los datos, como saludos o preguntas informales, responde unicamente con el texto: NO_DATA"}
-        ]
-    )
-    return mensaje.content[0].text
+                   "content": f"""Eres un experto en SQL para negocios hispanohablantes.
+Schema disponible: {schema}
+Pregunta del usuario: {question}
+Dialecto: {instruccion_dialecto}
 
+Reglas estrictas:
+- Responde SOLO con SQL puro, sin explicaciones, sin markdown, sin backticks
+- Usa exactamente los nombres de columnas y tablas del schema, sin modificarlos
+- Si la pregunta no está relacionada con los datos (saludos, preguntas informales, etc), responde ÚNICAMENTE con: NO_DATA
+"""}]
+    )
+    respuesta = mensaje.content[0].text.strip()
+    if "NO_DATA" in respuesta:
+        return "NO_DATA"
+    return respuesta
 
 
 def generate_explanation(pregunta, sql, resultados):
+    resultados_limitados = resultados[:50] if len(resultados) > 50 else resultados
+
     mensaje = client.messages.create(
         model=model,
         max_tokens=1024,
+        timeout=30,
         messages=[{"role": "user",
-               "content": f"Eres un experto analista en negocios, el usuario ha preguntado: {pregunta}, y se ha generado este SQL: {sql}, dando estos resultados: {resultados}. Tu mision como experto es explicar de forma clara, concisa y precisa los datos al dueño del negocio, sin usar lenguaje tecnico."}]
+                   "content": f"""Eres un analista de negocios que explica datos a dueños de negocio sin conocimientos técnicos.
+Pregunta del usuario: {pregunta}
+SQL ejecutado: {sql}
+Resultados obtenidos: {resultados_limitados}
+
+Explica los resultados de forma clara, directa y conversacional. Sin lenguaje técnico, sin mencionar SQL. Máximo 3-4 párrafos cortos. Destaca el dato más importante primero.
+"""}]
     )
     return mensaje.content[0].text
 
+
 def generate_chart(pregunta, resultados):
+    resultados_limitados = resultados[:50] if len(resultados) > 50 else resultados
+
     mensaje = client.messages.create(
         model=model,
         max_tokens=1024,
+        timeout=30,
         messages=[{"role": "user",
-                   "content": f"A partir de esta pregunta: {pregunta} y estos resultados: {resultados}, genera un grafico profesional y elegante en base a estos datos. SOLO debes de devolver un JSON valido de ECHARTS, sin ninguna explicacion, sin markdown, sin backticks... SOLO el JSON valido. No uses JavaScript dentro del JSON. Solo valores estáticos: strings, números, arrays y objetos."}]
+                   "content": f"""Genera una configuración de gráfico ECharts profesional para estos datos.
+Pregunta: {pregunta}
+Datos: {resultados_limitados}
+
+Reglas estrictas:
+- Devuelve SOLO un JSON válido de ECharts
+- Sin explicaciones, sin markdown, sin backticks
+- Sin JavaScript, solo valores estáticos (strings, números, arrays, objetos)
+- Elige el tipo de gráfico más apropiado para los datos (bar, line, pie, etc)
+"""}]
     )
     respuesta = mensaje.content[0].text
     respuesta = respuesta.replace("```json", "").replace("```", "").strip()
-    return respuesta
+    try:
+        json.loads(respuesta)
+        return respuesta
+    except:
+        return None
+
 
 def generate_fallback(pregunta, schema, error=""):
     if error == "Pregunta no relacionada con los datos":
-        instruccion = f"El usuario escribió: '{pregunta}'. Responde de forma amigable y natural como un asistente de negocio. Si es un saludo, saluda de vuelta brevemente. Menciona en una línea que puedes ayudarle a consultar datos de su negocio. Máximo 3 líneas, sin listas, sin formato especial."
+        instruccion = f"""El usuario escribió: '{pregunta}'.
+Responde como un asistente amigable de análisis de negocio. Si es un saludo, saluda brevemente. Menciona en una línea que puedes ayudarle a consultar los datos de su negocio. Máximo 2-3 líneas, sin formato especial."""
     else:
-        instruccion = f"No pudiste responder la consulta '{pregunta}' debido a un error técnico. Explica brevemente en lenguaje simple que no pudiste procesar esa consulta. Sin código SQL, sin detalles técnicos. Sugiere 2 preguntas alternativas sencillas basadas en este schema: {schema}"
+        instruccion = f"""No pudiste procesar la consulta '{pregunta}' debido a un error.
+Explica brevemente en lenguaje simple que no pudiste procesar esa consulta. Sin código SQL ni detalles técnicos. Sugiere 2 preguntas alternativas simples basadas en este schema: {schema}"""
 
     mensaje = client.messages.create(
         model=model,
         max_tokens=512,
+        timeout=30,
         messages=[{"role": "user", "content": instruccion}]
     )
     return mensaje.content[0].text

@@ -3,6 +3,8 @@ import pandasql as ps
 import os
 import fdb
 
+MAX_FILAS = 500
+
 def ejecutar_query(sql, ruta_archivo):
     if ruta_archivo.lower().endswith(".csv"):
         df = pd.read_csv(ruta_archivo)
@@ -13,14 +15,12 @@ def ejecutar_query(sql, ruta_archivo):
             user=os.getenv('FIREBIRD_USER'),
             password=os.getenv('FIREBIRD_PASSWORD')
         )
-
         df = pd.read_sql(sql, conn)
-        return df.fillna("").to_dict(orient="records")
+        return df.head(MAX_FILAS).fillna("").to_dict(orient="records")
     else:
         df = pd.read_excel(ruta_archivo)
     resultado = ps.sqldf(sql, {"nombre_tabla": df})
-    return resultado.fillna("").to_dict(orient="records")
-
+    return resultado.head(MAX_FILAS).fillna("").to_dict(orient="records")
 
 
 def ejecutar_query_sync(sql, carpeta):
@@ -30,4 +30,4 @@ def ejecutar_query_sync(sql, carpeta):
             nombre_tabla = archivo.replace(".csv", "")
             tablas[nombre_tabla] = pd.read_csv(os.path.join(carpeta, archivo))
     resultado = ps.sqldf(sql, tablas)
-    return resultado.fillna("").to_dict(orient="records")   
+    return resultado.head(MAX_FILAS).fillna("").to_dict(orient="records")

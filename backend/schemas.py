@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+from enum import Enum
 
 class UsuarioCreate(BaseModel):
     email: str
@@ -10,10 +11,14 @@ class UsuarioLogin(BaseModel):
     email: str
     password: str
 
+class ModoConsulta(str, Enum):
+    rapido = "rapido"
+    profundo = "profundo"
+    
 class Consulta(BaseModel):
     pregunta: str
     conexion_id: int
-    modo: Optional[str] = "profundo"
+    modo: ModoConsulta = ModoConsulta.profundo
 
 class ConexionCreate(BaseModel):
     tipo_bd: str
@@ -40,3 +45,4 @@ class HistorialResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
