@@ -3,7 +3,7 @@ import os
 from core.config import cargar_config
 from core.auth import renovar_token
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://yvexiq.com"
 
 def _subir_archivo(ruta, archivo, conexion_id, headers) -> bool:
     try:

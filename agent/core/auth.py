@@ -3,7 +3,7 @@ from core.config import cargar_config, guardar_config, limpiar_config
 from core.config import cargar_config, guardar_config, limpiar_config, guardar_credenciales
 
 
-API_URL = "http://127.0.0.1:8000"  # cambiar a https://yvexiq.com cuando esté el VPS
+API_URL = "https://yvexiq.com"  
 
 def login(email: str, password: str) -> dict:
     try:
