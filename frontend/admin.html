@@ -171,7 +171,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
     <div class="sb-top">
-      <div class="sb-logo-icon" onclick="toggleSidebar()">Y</div>
+      <img src="/yvexiq_256.png" onclick="toggleSidebar()" style="width:38px;height:38px;border-radius:10px;cursor:pointer;" alt="YvexIQ">
       <span class="sb-logo-text">YvexIQ</span>
     </div>
     <div class="sb-nav">
@@ -308,7 +308,7 @@
   <div class="toast" id="toast"><span id="toast-text"></span></div>
 
   <script>
-    const API = 'http://127.0.0.1:8000';
+    const API = 'https://yvexiq.com/api';
     const TOKEN = localStorage.getItem('yvex_token');
     if (!TOKEN) window.location.href = 'login.html';
 

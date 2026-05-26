@@ -386,7 +386,7 @@
     </div>
 
     <div class="sb-top">
-      <div class="sb-logo-icon" onclick="toggleSidebar()">Y</div>
+      <img src="/yvexiq_256.png" onclick="toggleSidebar()" style="width:36px;height:36px;border-radius:10px;cursor:pointer;" alt="YvexIQ">
       <span class="sb-logo-text">YvexIQ</span>
     </div>
 
@@ -507,7 +507,7 @@
   </div>
 
   <script>
-    const API = 'http://127.0.0.1:8000';
+    const API = 'https://yvexiq.com/api';
     const TOKEN = localStorage.getItem('yvex_token');
     // Redirigir si no hay token
     if (!TOKEN) window.location.href = 'login.html';
