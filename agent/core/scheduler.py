@@ -33,18 +33,28 @@ class Scheduler:
 
             if self._corriendo:
                 from core.config import cargar_config as cc
+                import requests
                 config = cc()
                 auto_sync_ids = config.get("auto_sync", [])
-                temp_base = os.path.join(os.path.expanduser("~"), ".yvexiq", "temp")
-
+                token = config.get("token")
                 total = 0
-                for conexion_id in auto_sync_ids:
-                    carpeta = os.path.join(temp_base, str(conexion_id))
-                    if os.path.exists(carpeta):
-                        from core.sync import sincronizar
-                        res = sincronizar(conexion_id, carpeta)
-                        if res["ok"]:
-                            total += res["archivos"]
-
+                
+                if token and auto_sync_ids:
+                    try:
+                        res = requests.get(
+                            "https://yvexiq.com/api/conexiones",
+                            headers={"Authorization": f"Bearer {token}"}
+                        )
+                        if res.status_code == 200:
+                            conexiones = {c["id"]: c for c in res.json()}
+                            for conexion_id in auto_sync_ids:
+                                if conexion_id in conexiones:
+                                    from core.sync import re_extraer_y_sincronizar
+                                    resultado = re_extraer_y_sincronizar(conexiones[conexion_id])
+                                    if resultado["ok"]:
+                                        total += resultado["archivos"]
+                    except:
+                        pass
+                
                 if self.callback_estado:
                     self.callback_estado({"ok": True, "archivos": total})

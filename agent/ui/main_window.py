@@ -10,7 +10,7 @@ import requests
 import os
 from core.sync import sincronizar_todas
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://yvexiq.com/api"
 
 
 class SyncWorker(QThread):
@@ -24,15 +24,30 @@ class SyncWorker(QThread):
 
     def run(self):
         if self.conexion_id and self.carpeta:
-            # Individual
             resultado = sincronizar(
                 conexion_id=self.conexion_id,
                 carpeta=self.carpeta,
                 callback=lambda p: self.progreso.emit(p)
             )
         else:
-            # Todas
             resultado = sincronizar_todas(callback=lambda p: self.progreso.emit(p))
+        self.terminado.emit(resultado)
+
+
+class ReExtractWorker(QThread):
+    progreso = Signal(int)
+    terminado = Signal(dict)
+
+    def __init__(self, conexion):
+        super().__init__()
+        self.conexion = conexion
+
+    def run(self):
+        from core.sync import re_extraer_y_sincronizar
+        resultado = re_extraer_y_sincronizar(
+            self.conexion,
+            callback=lambda p: self.progreso.emit(p)
+        )
         self.terminado.emit(resultado)
 
 
@@ -63,7 +78,6 @@ class ConexionCard(QFrame):
         layout.setContentsMargins(14, 10, 14, 10)
         layout.setSpacing(8)
 
-        # Info
         info_layout = QVBoxLayout()
         info_layout.setSpacing(3)
 
@@ -86,7 +100,6 @@ class ConexionCard(QFrame):
         layout.addLayout(info_layout)
         layout.addStretch()
 
-        # Botones
         btn_auto = QPushButton("⚙ Auto")
         btn_auto.setObjectName("btn_auto_on" if auto_sync else "btn_auto_off")
         btn_auto.setFixedHeight(26)
@@ -117,6 +130,7 @@ class ConexionCard(QFrame):
         if event.button() == Qt.LeftButton:
             self.activada.emit(self.conexion)
 
+
 class MainWindow(QWidget):
     cerrar_sesion = Signal()
     ir_a_onboarding = Signal()
@@ -141,7 +155,6 @@ class MainWindow(QWidget):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(14)
 
-        # Header
         header = QHBoxLayout()
         logo = QLabel("Y")
         logo.setObjectName("logo")
@@ -161,7 +174,6 @@ class MainWindow(QWidget):
         header.addWidget(btn_logout)
         layout.addLayout(header)
 
-        # Card sincronización
         card_sync = QFrame()
         card_sync.setObjectName("card")
         sl = QVBoxLayout(card_sync)
@@ -190,7 +202,6 @@ class MainWindow(QWidget):
 
         layout.addWidget(card_sync)
 
-        # Card intervalo
         card_intervalo = QFrame()
         card_intervalo.setObjectName("card")
         il = QHBoxLayout(card_intervalo)
@@ -212,7 +223,6 @@ class MainWindow(QWidget):
 
         layout.addWidget(card_intervalo)
 
-        # Sección conexiones
         header_conexiones = QHBoxLayout()
         label_conexiones = QLabel("Bases de datos")
         label_conexiones.setObjectName("label_seccion")
@@ -225,7 +235,6 @@ class MainWindow(QWidget):
         header_conexiones.addWidget(btn_agregar)
         layout.addLayout(header_conexiones)
 
-        # Scroll de conexiones
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setObjectName("scroll")
@@ -345,14 +354,14 @@ class MainWindow(QWidget):
         self.progress.show()
         self.label_sync_estado.hide()
 
-        self.sync_worker = SyncWorker()  # sin parámetros = todas
+        self.sync_worker = SyncWorker()
         self.sync_worker.progreso.connect(self.progress.setValue)
         self.sync_worker.terminado.connect(self._on_sync_terminado)
         self.sync_worker.start()
 
     def _on_sync_terminado(self, resultado):
         self.btn_sync.setEnabled(True)
-        self.btn_sync.setText("⟳  Sincronizar ahora")
+        self.btn_sync.setText("⟳  Sincronizar todas")
         self.progress.hide()
         ahora = datetime.now().strftime("%d/%m/%Y %H:%M")
         if resultado["ok"]:
@@ -395,26 +404,15 @@ class MainWindow(QWidget):
         guardar_config({"auto_sync": auto_sync})
 
     def _sincronizar_individual(self, conexion: dict):
-        conexion_id = conexion["id"]
-        config = cargar_config()
-        carpeta = os.path.join(
-            os.path.expanduser("~"), ".yvexiq", "temp", str(conexion_id)
-        )
-        if not os.path.exists(carpeta):
-            self.label_sync_estado.setText(f"✗ Sin datos para sincronizar")
-            self.label_sync_estado.show()
-            return
-
         self.btn_sync.setEnabled(False)
         self.progress.setValue(0)
         self.progress.show()
         self.label_sync_estado.hide()
 
-        self.sync_worker = SyncWorker(conexion_id=conexion_id, carpeta=carpeta)
+        self.sync_worker = ReExtractWorker(conexion)
         self.sync_worker.progreso.connect(self.progress.setValue)
         self.sync_worker.terminado.connect(self._on_sync_terminado)
         self.sync_worker.start()
-
 
     def _cerrar_app(self):
         self.scheduler.detener()

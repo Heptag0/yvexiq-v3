@@ -3,7 +3,7 @@ from core.config import cargar_config, guardar_config, limpiar_config
 from core.config import cargar_config, guardar_config, limpiar_config, guardar_credenciales
 
 
-API_URL = "https://yvexiq.com"  
+API_URL = "https://yvexiq.com/api"  
 
 def login(email: str, password: str) -> dict:
     try:
