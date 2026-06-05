@@ -48,7 +48,7 @@ class OnboardingWindow(QWidget):
         from PySide6.QtGui import QFont
         font = QFont("Segoe UI", 10)
         self.setFont(font)
-        self.setWindowTitle("YvexIQ — Configuración inicial")
+        self.setWindowTitle("YvexIQ — Añadir bases de datos")
         self.setFixedSize(500, 640)
         self.archivos = []
         self.worker = None
@@ -62,7 +62,7 @@ class OnboardingWindow(QWidget):
         layout.setSpacing(16)
 
         # Título
-        titulo = QLabel("Configuración inicial")
+        titulo = QLabel("Añade tu base de datos")
         titulo.setObjectName("titulo")
         layout.addWidget(titulo)
 
@@ -158,7 +158,7 @@ class OnboardingWindow(QWidget):
         ruta = item.data(Qt.UserRole)
         self.btn_confirmar.setEnabled(False)
         self.btn_confirmar.setText("Extrayendo datos...")
-        self.label_estado.setText("Analizando tablas con IA, esto puede tardar unos segundos...")
+        self.label_estado.setText("Analizando tablas con IA, esto puede tardar unos minutos...")
         self.label_estado.show()
 
 

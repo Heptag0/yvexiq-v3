@@ -1,8 +1,49 @@
 # agent/ui/login_window.py
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QFrame)
-from PySide6.QtCore import Qt, Signal, QThread
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, Signal, QThread, QRect
+from PySide6.QtGui import QFont, QPixmap, QLinearGradient, QColor, QPainter
 from core.auth import login
+import sys
+import os
+
+class GradientLabel(QLabel):
+    def paintEvent(self, event):
+        from PySide6.QtGui import QImage, QBrush
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        
+        scale = 3
+        font = QFont("Tahoma", 26, QFont.Weight.Bold)
+        
+        img = QImage(self.size() * scale, QImage.Format_ARGB32_Premultiplied)
+        img.fill(0)
+        
+        p2 = QPainter(img)
+        p2.setRenderHint(QPainter.Antialiasing)
+        p2.setRenderHint(QPainter.TextAntialiasing)
+        scaled_font = QFont("Tahoma", 26 * scale, QFont.Weight.Bold)
+        p2.setFont(scaled_font)
+        p2.setPen(QColor("white"))
+        p2.drawText(img.rect(), Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        p2.end()
+        
+        gradient = QLinearGradient(0, 0, img.width(), 0)
+        gradient.setColorAt(0.0, QColor("#ffffff"))
+        gradient.setColorAt(0.5, QColor("#c084fc"))
+        gradient.setColorAt(1.0, QColor("#a855f7"))
+        
+        p3 = QPainter(img)
+        p3.setCompositionMode(QPainter.CompositionMode_SourceIn)
+        p3.fillRect(img.rect(), QBrush(gradient))
+        p3.end()
+        
+        from PySide6.QtGui import QPixmap
+        pixmap = QPixmap.fromImage(img).scaled(
+            self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
 
 class LoginWorker(QThread):
     resultado = Signal(dict)
@@ -26,7 +67,7 @@ class LoginWindow(QWidget):
         font = QFont("Segoe UI", 10)
         self.setFont(font)
         self.setWindowTitle("YvexIQ")
-        self.setFixedSize(400, 500)
+        self.setFixedSize(460, 540)
         self.worker = None
         self._setup_ui()
         self._apply_styles()
@@ -36,18 +77,29 @@ class LoginWindow(QWidget):
         layout.setContentsMargins(40, 40, 40, 40)
         layout.setSpacing(0)
 
-        # Logo
-        logo = QLabel("Y")
-        logo.setAlignment(Qt.AlignCenter)
-        logo.setObjectName("logo")
-        layout.addWidget(logo)
+        # Logo con icono + texto degradado
+        logo_container = QHBoxLayout()
+        logo_container.setAlignment(Qt.AlignCenter)
+        logo_container.setSpacing(10)
 
-        # Título
-        titulo = QLabel("YvexIQ")
-        titulo.setAlignment(Qt.AlignCenter)
-        titulo.setObjectName("titulo")
-        layout.addWidget(titulo)
+        icono = QLabel()
+        if getattr(sys, 'frozen', False):
+            base = sys._MEIPASS
+        else:
+            base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        pixmap = QPixmap(os.path.join(base, 'yvexiq_256.png')).scaled(
+            48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
+        icono.setPixmap(pixmap)
+        icono.setStyleSheet("background: transparent; border: none;")
 
+        texto = GradientLabel("YvexIQ")
+        texto.setFixedSize(140, 45)
+        texto.setObjectName("logo_texto")
+
+        logo_container.addWidget(icono)
+        logo_container.addWidget(texto)
+        layout.addLayout(logo_container)
         # Subtítulo
         subtitulo = QLabel("Inicia sesión para continuar")
         subtitulo.setAlignment(Qt.AlignCenter)
@@ -92,6 +144,18 @@ class LoginWindow(QWidget):
         card_layout.addWidget(self.input_password)
         card_layout.addWidget(self.label_error)
         card_layout.addWidget(self.btn_login)
+        # Enlace de registro
+        registro_layout = QHBoxLayout()
+        registro_layout.setAlignment(Qt.AlignCenter)
+        label_registro = QLabel("¿No tienes cuenta?")
+        label_registro.setObjectName("label_registro")
+        btn_registro = QPushButton("Regístrate gratis")
+        btn_registro.setObjectName("btn_link")
+        import webbrowser
+        btn_registro.clicked.connect(lambda: webbrowser.open("https://yvexiq.com/login"))
+        registro_layout.addWidget(label_registro)
+        registro_layout.addWidget(btn_registro)
+        card_layout.addLayout(registro_layout)
 
         layout.addWidget(card)
         layout.addStretch()
@@ -134,17 +198,11 @@ class LoginWindow(QWidget):
                 font-family: Tahoma, sans-serif;
                 font-size: 14px;
             }
-            #logo {
-                font-size: 36px;
-                font-weight: bold;
-                color: white;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7c22d4, stop:1 #9333ea);
-                border-radius: 16px;
-                padding: 12px;
-                max-width: 60px;
-                min-width: 60px;
-                max-height: 60px;
-                min-height: 60px;
+            #logo_texto {
+                font-size: 28px;
+                font-weight: 700;
+                color: #c084fc;
+                background: transparent;
             }
             #titulo {
                 font-size: 26px;
@@ -207,5 +265,21 @@ class LoginWindow(QWidget):
                 font-size: 12px;
                 color: rgba(245,243,255,0.55);
                 font-weight: 600;
+            }
+            
+            QPushButton#btn_link {
+                background: transparent;
+                border: none;
+                color: #a855f7;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 0;
+                text-decoration: underline;
+            }
+            QPushButton#btn_link:hover { color: #d946ef; }
+            #label_registro {
+                font-size: 12px;
+                color: rgba(245,243,255,0.45);
+                font-weight: normal;
             }
         """)

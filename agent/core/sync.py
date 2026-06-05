@@ -5,7 +5,7 @@ from core.auth import renovar_token
 
 API_URL = "https://yvexiq.com/api"
 
-def _subir_archivo(ruta, archivo, conexion_id, headers) -> bool:
+def _subir_archivo(ruta, archivo, conexion_id, headers):
     try:
         with open(ruta, "rb") as f:
             res = requests.post(
@@ -17,7 +17,7 @@ def _subir_archivo(ruta, archivo, conexion_id, headers) -> bool:
         if res.status_code == 401:
             nuevo_token = renovar_token()
             if not nuevo_token:
-                return False
+                return "error"
             headers["Authorization"] = f"Bearer {nuevo_token}"
             with open(ruta, "rb") as f:
                 res = requests.post(
@@ -26,9 +26,11 @@ def _subir_archivo(ruta, archivo, conexion_id, headers) -> bool:
                     headers=headers,
                     files={"archivo": (archivo, f, "text/csv")}
                 )
-        return res.status_code == 200
-    except:
-        return False
+        return "ok" if res.status_code == 200 else "error"
+    except requests.exceptions.ConnectionError:
+        return "sin_internet"
+    except Exception:
+        return "error"
 
 def _obtener_conexiones_servidor(headers) -> set:
     try:
@@ -54,7 +56,10 @@ def sincronizar(conexion_id, carpeta, callback=None) -> dict:
         return {"ok": False, "error": "No hay archivos para sincronizar"}
     for i, archivo in enumerate(csvs):
         ruta = os.path.join(carpeta, archivo)
-        if _subir_archivo(ruta, archivo, conexion_id, headers):
+        resultado = _subir_archivo(ruta, archivo, conexion_id, headers)
+        if resultado == "sin_internet":
+            return {"ok": False, "error": "Sin conexión a internet. Verifica tu red e intenta de nuevo."}
+        elif resultado == "ok":
             archivos_subidos += 1
         else:
             errores.append(archivo)
@@ -74,35 +79,54 @@ def sincronizar_todas(callback=None) -> dict:
     if not carpetas:
         return {"ok": False, "error": "No hay conexiones configuradas"}
 
-    # Obtener conexiones válidas del servidor y limpiar carpetas huérfanas
     headers = {"Authorization": f"Bearer {token}"}
     conexiones_servidor = _obtener_conexiones_servidor(headers)
+
+    # Limpiar carpetas huérfanas
     for carpeta_id in carpetas:
         if carpeta_id not in conexiones_servidor:
             import shutil
-            carpeta_huerfana = os.path.join(temp_base, carpeta_id)
-            shutil.rmtree(carpeta_huerfana, ignore_errors=True)
+            shutil.rmtree(os.path.join(temp_base, carpeta_id), ignore_errors=True)
 
-    # Sincronizar solo las que existen en el servidor
     carpetas_validas = [f for f in carpetas if f in conexiones_servidor]
     if not carpetas_validas:
         return {"ok": False, "error": "No hay conexiones válidas"}
 
+    # Contar total de archivos para progreso real
+    total_csvs = sum(
+        len([f for f in os.listdir(os.path.join(temp_base, cid)) if f.endswith(".csv")])
+        for cid in carpetas_validas
+        if os.path.exists(os.path.join(temp_base, cid))
+    )
+    archivos_procesados = 0
     total_archivos = 0
     errores = []
-    for idx, carpeta_id in enumerate(carpetas_validas):
+
+    for carpeta_id in carpetas_validas:
         try:
             conexion_id = int(carpeta_id)
         except:
             continue
         carpeta = os.path.join(temp_base, carpeta_id)
-        resultado = sincronizar(conexion_id, carpeta)
+
+        def progreso_archivo(p, cid=conexion_id):
+            nonlocal archivos_procesados
+            if p == 100:
+                archivos_procesados += 1
+                if callback and total_csvs > 0:
+                    callback(int(archivos_procesados / total_csvs * 100))
+
+        resultado = sincronizar(conexion_id, carpeta, callback=progreso_archivo)
         if resultado["ok"]:
             total_archivos += resultado["archivos"]
         else:
             errores.append(f"Conexión {conexion_id}: {resultado['error']}")
-        if callback:
-            callback(int((idx + 1) / len(carpetas_validas) * 100))
+            # Si es problema de internet, parar inmediatamente
+            if "internet" in resultado["error"].lower():
+                return {"ok": False, "error": resultado["error"]}
+
+    if callback:
+        callback(100)
 
     if errores and total_archivos == 0:
         return {"ok": False, "error": "\n".join(errores)}
@@ -116,16 +140,16 @@ def re_extraer_y_sincronizar(conexion: dict, callback=None) -> dict:
     ruta_archivo = conexion.get("ruta_archivo", "")
     
     if not ruta_archivo or not os.path.exists(ruta_archivo):
-        # Si no existe el archivo original, intentar subir lo que ya hay
         carpeta = os.path.join(os.path.expanduser("~"), ".yvexiq", "temp", str(conexion_id))
         if os.path.exists(carpeta):
             return sincronizar(conexion_id, carpeta, callback)
         return {"ok": False, "error": "Archivo original no encontrado"}
     
     try:
-        # Re-analizar y re-extraer
         tablas = analizar_tablas(ruta_archivo) if ruta_archivo.lower().endswith(".fdb") else None
         carpeta = extraer_tablas(ruta_archivo, tablas, conexion_id)
         return sincronizar(conexion_id, carpeta, callback)
+    except requests.exceptions.ConnectionError:
+        return {"ok": False, "error": "Sin conexión a internet. Verifica tu red e intenta de nuevo."}
     except Exception as e:
         return {"ok": False, "error": str(e)}

@@ -1,7 +1,7 @@
 import sys
 import os
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 from core.auth import esta_autenticado
 from core.config import cargar_config
 from ui.login_window import LoginWindow
@@ -15,6 +15,14 @@ class YvexIQApp:
         self.app.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
         self.app.setFont(QFont("Tahoma", 10, QFont.Weight.Normal))
         self.app.setQuitOnLastWindowClosed(False)
+
+        # Icono de la aplicación
+        if getattr(sys, 'frozen', False):
+            base = sys._MEIPASS
+        else:
+            base = os.path.dirname(os.path.abspath(__file__))
+        self.app.setWindowIcon(QIcon(os.path.join(base, 'yvexiq.ico')))
+
         self.ventana = None
         self._onboarding_temporal = None
 
@@ -66,7 +74,6 @@ class YvexIQApp:
                 self.mostrar_onboarding()
         else:
             self.mostrar_login()
-
         sys.exit(self.app.exec())
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QComboBox, QProgressBar, QSystemTrayIcon, QMenu, QScrollArea, QMessageBox)
 from PySide6.QtCore import Qt, Signal, QThread
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QPixmap
 from core.config import cargar_config, guardar_config
 from core.auth import logout, get_token
 from core.sync import sincronizar
@@ -8,6 +8,7 @@ from core.scheduler import Scheduler
 from datetime import datetime
 import requests
 import os
+import sys
 from core.sync import sincronizar_todas
 
 API_URL = "https://yvexiq.com/api"
@@ -156,12 +157,20 @@ class MainWindow(QWidget):
         layout.setSpacing(14)
 
         header = QHBoxLayout()
-        logo = QLabel("Y")
+
+        # Logo usando PNG
+        logo = QLabel()
         logo.setObjectName("logo")
-        titulo = QLabel("YvexIQ")
-        titulo.setObjectName("titulo")
+        if getattr(sys, 'frozen', False):
+            base = sys._MEIPASS
+        else:
+            base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        pixmap = QPixmap(os.path.join(base, 'yvexiq_horizontal.png')).scaled(
+            180, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
+        logo.setPixmap(pixmap)
+        logo.setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;")
         header.addWidget(logo)
-        header.addWidget(titulo)
         header.addStretch()
         config = cargar_config()
         email = config.get("email", "")
@@ -378,6 +387,19 @@ class MainWindow(QWidget):
         if resultado["ok"]:
             guardar_config({"ultima_sincronizacion": ahora})
             self.label_ultima_sync.setText(f"Última sincronización: {ahora}")
+            self.tray.showMessage(
+                "YvexIQ",
+                f"✓ Sincronización automática completada — {resultado['archivos']} archivos actualizados",
+                QSystemTrayIcon.Information,
+                3000
+            )
+        else:
+            self.tray.showMessage(
+                "YvexIQ",
+                f"✗ Error en sync automática: {resultado['error']}",
+                QSystemTrayIcon.Warning,
+                4000
+            )
 
     def _logout(self):
         self.scheduler.detener()
@@ -429,12 +451,8 @@ class MainWindow(QWidget):
                 font-size: 13px;
             }
             #logo {
-                font-size: 18px;
-                font-weight: bold;
-                color: white;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7c22d4, stop:1 #9333ea);
+                background: transparent;
                 border-radius: 10px;
-                padding: 6px 10px;
             }
             #titulo {
                 font-size: 17px;

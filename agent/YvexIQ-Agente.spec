@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('fbembed.dll', '.'), ('ib_util.dll', '.'), ('icudt30.dll', '.'), ('icuin30.dll', '.'), ('icuuc30.dll', '.'), ('msvcp80.dll', '.'), ('msvcr80.dll', '.'), ('firebird.msg', '.')]
+datas = [('fbembed.dll', '.'), ('ib_util.dll', '.'), ('icudt30.dll', '.'), ('icuin30.dll', '.'), ('icuuc30.dll', '.'), ('msvcp80.dll', '.'), ('msvcr80.dll', '.'), ('firebird.msg', '.'), ('yvexiq.ico', '.'), ('yvexiq_256.png', '.'), ('yvexiq_horizontal.png', '.')]
 binaries = []
 hiddenimports = ['core.auth', 'core.config', 'core.sync', 'core.scheduler', 'ui.login_window', 'ui.onboarding', 'ui.main_window', 'table_analyzer', 'extractor', 'detector', 'analyzer']
 tmp_ret = collect_all('PySide6')
@@ -58,4 +58,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['yvexiq.ico'],
 )
