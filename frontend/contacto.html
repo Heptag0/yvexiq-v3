@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contacto — YvexIQ</title>
+<link rel="icon" href="/favicon.ico?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07081a;
+    --bg2: #0d0f28;
+    --violet: #7c22d4;
+    --violet-light: #a855f7;
+    --magenta: #d946ef;
+    --white: #f5f3ff;
+    --dim: rgba(245,243,255,0.55);
+    --border: rgba(255,255,255,0.08);
+    --card: rgba(255,255,255,0.04);
+    --success: #22d47c;
+    --whatsapp: #25D366;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 20% 30%, rgba(124,34,212,0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(217,70,239,0.06) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(7,8,26,0.85);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 48px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .nav-logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--violet-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    text-decoration: none;
+  }
+
+  nav a.nav-back {
+    margin-left: auto; color: var(--dim);
+    text-decoration: none; font-size: 14px; transition: color 0.2s;
+  }
+  nav a.nav-back:hover { color: var(--white); }
+
+  .hero {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 72px 40px 56px;
+    max-width: 700px; margin: 0 auto;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(124,34,212,0.12);
+    border: 1px solid rgba(124,34,212,0.25);
+    border-radius: 100px; padding: 5px 16px;
+    font-size: 13px; color: var(--violet-light); margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800; line-height: 1.1; margin-bottom: 16px;
+  }
+
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--magenta), var(--violet-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .hero p { color: var(--dim); font-size: 17px; line-height: 1.7; }
+
+  /* Grid principal */
+  .grid {
+    position: relative; z-index: 1;
+    max-width: 1000px; margin: 0 auto;
+    padding: 0 40px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 720px) {
+    .grid { grid-template-columns: 1fr; padding: 0 20px 60px; }
+  }
+
+  /* Tarjetas de contacto */
+  .contact-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    transition: border-color 0.2s;
+  }
+  .contact-card:hover { border-color: rgba(124,34,212,0.3); }
+
+  .card-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 16px;
+  }
+
+  .card-icon.violet { background: rgba(124,34,212,0.15); }
+  .card-icon.magenta { background: rgba(217,70,239,0.12); }
+  .card-icon.green { background: rgba(34,212,124,0.12); }
+  .card-icon.blue { background: rgba(59,130,246,0.12); }
+
+  .contact-card h3 {
+    font-size: 18px; font-weight: 600; margin-bottom: 8px;
+  }
+
+  .contact-card p {
+    color: var(--dim); font-size: 14px; line-height: 1.6; margin-bottom: 16px;
+  }
+
+  .card-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: none; font-size: 14px; font-weight: 500;
+    padding: 10px 18px; border-radius: 10px;
+    transition: all 0.2s;
+  }
+
+  .card-link.violet {
+    background: rgba(124,34,212,0.15);
+    border: 1px solid rgba(124,34,212,0.25);
+    color: var(--violet-light);
+  }
+  .card-link.violet:hover { background: rgba(124,34,212,0.25); }
+
+  .card-link.magenta {
+    background: rgba(217,70,239,0.1);
+    border: 1px solid rgba(217,70,239,0.2);
+    color: var(--magenta);
+  }
+  .card-link.magenta:hover { background: rgba(217,70,239,0.18); }
+
+  .card-link.whatsapp {
+    background: rgba(37,211,102,0.1);
+    border: 1px solid rgba(37,211,102,0.2);
+    color: var(--whatsapp);
+  }
+  .card-link.whatsapp:hover { background: rgba(37,211,102,0.18); }
+
+  .card-link.locked {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    color: var(--dim); cursor: not-allowed;
+  }
+
+  .plan-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(124,34,212,0.3), rgba(217,70,239,0.2));
+    border: 1px solid rgba(217,70,239,0.3);
+    border-radius: 6px; padding: 2px 8px;
+    font-size: 11px; font-weight: 600;
+    color: var(--magenta); margin-left: 6px;
+  }
+
+  /* Formulario */
+  .form-card {
+    grid-column: 1 / -1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+  }
+
+  .form-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; margin-bottom: 24px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 13px; font-weight: 500;
+    color: var(--dim);
+  }
+
+  input, select, textarea {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: rgba(124,34,212,0.5);
+    background: rgba(124,34,212,0.07);
+  }
+
+  select option { background: #1a0533; }
+  textarea { resize: vertical; min-height: 120px; }
+
+  .btn-submit {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--violet), var(--magenta));
+    color: white; border: none; cursor: pointer;
+    padding: 13px 28px; border-radius: 12px;
+    font-size: 15px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(124,34,212,0.3);
+    margin-top: 8px;
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(124,34,212,0.4);
+  }
+
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .form-success {
+    display: none;
+    background: rgba(34,212,124,0.08);
+    border: 1px solid rgba(34,212,124,0.2);
+    border-radius: 12px; padding: 16px 20px;
+    color: var(--success); font-size: 14px;
+    margin-top: 16px;
+  }
+
+  .form-error {
+    display: none;
+    background: rgba(251,113,133,0.08);
+    border: 1px solid rgba(251,113,133,0.2);
+    border-radius: 12px; padding: 16px 20px;
+    color: #fb7185; font-size: 14px;
+    margin-top: 16px;
+  }
+
+  /* FAQ */
+  .faq-section {
+    position: relative; z-index: 1;
+    max-width: 700px; margin: 0 auto;
+    padding: 0 40px 80px;
+  }
+
+  .faq-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700;
+    margin-bottom: 24px; text-align: center;
+  }
+
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: 14px; margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .faq-q {
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 15px; font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .faq-q:hover { background: rgba(255,255,255,0.03); }
+  .faq-q.open { background: rgba(124,34,212,0.08); color: var(--violet-light); }
+
+  .faq-chevron {
+    width: 18px; height: 18px; flex-shrink: 0;
+    transition: transform 0.3s; color: var(--dim);
+  }
+  .faq-q.open .faq-chevron { transform: rotate(180deg); color: var(--violet-light); }
+
+  .faq-a {
+    display: none;
+    padding: 0 20px 16px;
+    color: var(--dim); font-size: 14px; line-height: 1.7;
+  }
+  .faq-a.open { display: block; }
+
+  footer {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    max-width: 1000px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: center; justify-content: space-between;
+  }
+
+  footer span { color: var(--dim); font-size: 13px; }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a { color: var(--dim); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--violet-light); }
+</style>
+</head>
+<body>
+
+<nav>
+  <img src="/yvexiq_256.png" style="width:36px;height:36px;border-radius:10px;" alt="YvexIQ">
+  <a href="/" class="nav-logo-text">YvexIQ</a>
+  <a href="/" class="nav-back">← Volver al inicio</a>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">💬 Soporte y contacto</div>
+  <h1>¿En qué podemos<br><em>ayudarte?</em></h1>
+  <p>Estamos aquí para ayudarte. Elige la opción que mejor se adapte a tu consulta.</p>
+</div>
+
+<!-- Grid de opciones -->
+<div class="grid">
+
+  <!-- Email general -->
+  <div class="contact-card">
+    <div class="card-icon violet">✉️</div>
+    <h3>Correo electrónico</h3>
+    <p>Para consultas generales, dudas sobre tu cuenta o cualquier pregunta sobre YvexIQ. Respondemos en menos de 48 horas hábiles.</p>
+    <a href="mailto:contacto@yvexiq.com" class="card-link violet">
+      contacto@yvexiq.com ↗
+    </a>
+  </div>
+
+  <!-- Privacidad -->
+  <div class="contact-card">
+    <div class="card-icon magenta">🔒</div>
+    <h3>Privacidad y datos</h3>
+    <p>Para solicitudes de acceso, rectificación o eliminación de tus datos personales, así como cualquier consulta sobre nuestra política de privacidad.</p>
+    <a href="mailto:privacidad@yvexiq.com" class="card-link magenta">
+      privacidad@yvexiq.com ↗
+    </a>
+  </div>
+
+  <!-- WhatsApp Pro -->
+  <div class="contact-card">
+    <div class="card-icon green">💬</div>
+    <h3>Soporte por WhatsApp <span class="plan-badge">Pro</span></h3>
+    <p>Los usuarios del plan Pro tienen acceso a soporte por WhatsApp con respuestas automáticas inteligentes disponibles 24/7.</p>
+    <a href="/login" class="card-link whatsapp">
+      Iniciar sesión para acceder ↗
+    </a>
+  </div>
+
+  <!-- WhatsApp Enterprise -->
+  <div class="contact-card">
+    <div class="card-icon blue">⭐</div>
+    <h3>Atención personalizada <span class="plan-badge">Enterprise</span></h3>
+    <p>Los usuarios Enterprise tienen acceso directo a atención personalizada vía WhatsApp con tiempos de respuesta prioritarios.</p>
+    <a href="/login" class="card-link magenta">
+      Iniciar sesión para acceder ↗
+    </a>
+  </div>
+
+  <!-- Formulario -->
+  <div class="form-card">
+    <h3>Envíanos un mensaje</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="f-nombre" placeholder="Tu nombre">
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="f-email" placeholder="tu@correo.com">
+      </div>
+      <div class="form-group">
+        <label>Asunto</label>
+        <select id="f-asunto">
+          <option value="">Selecciona un asunto</option>
+          <option value="soporte">Soporte técnico</option>
+          <option value="cuenta">Mi cuenta</option>
+          <option value="facturacion">Facturación y pagos</option>
+          <option value="privacidad">Privacidad y datos</option>
+          <option value="partnership">Alianzas comerciales</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Plan actual</label>
+        <select id="f-plan">
+          <option value="">No tengo cuenta</option>
+          <option value="gratuito">Gratuito</option>
+          <option value="basico">Básico</option>
+          <option value="pro">Pro</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Mensaje</label>
+        <textarea id="f-mensaje" placeholder="Cuéntanos cómo podemos ayudarte..."></textarea>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="enviarFormulario()" id="btn-enviar">
+      Enviar mensaje →
+    </button>
+    <div class="form-success" id="form-success">
+      ✓ Mensaje enviado correctamente. Te responderemos en menos de 48 horas hábiles.
+    </div>
+    <div class="form-error" id="form-error">
+      Error al enviar. Por favor escríbenos directamente a contacto@yvexiq.com
+    </div>
+  </div>
+
+</div>
+
+<!-- FAQ -->
+<div class="faq-section">
+  <h2 class="faq-title">Preguntas frecuentes</h2>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      ¿Cómo sincronizo mi base de datos de Eleventa?
+      <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="faq-a">Descarga el agente de escritorio desde <a href="/descargar" style="color:var(--violet-light)">yvexiq.com/descargar</a>, instálalo en tu PC, inicia sesión y el agente detectará automáticamente tu base de datos de Eleventa. El proceso tarda menos de 2 minutos.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      ¿Mis datos de negocio están seguros?
+      <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="faq-a">Sí. Tus datos se transfieren cifrados con HTTPS y se almacenan en servidores seguros. Solo tú tienes acceso a tus datos. Nunca los compartimos con terceros. Puedes leer más en nuestra <a href="/privacidad" style="color:var(--violet-light)">Política de Privacidad</a>.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      ¿Puedo cancelar mi plan en cualquier momento?
+      <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="faq-a">Sí, puedes cancelar cuando quieras. Mantendrás el acceso al plan hasta el final del período facturado. No hay permanencia ni penalizaciones.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      ¿Funciona con Excel y CSV además de Eleventa?
+      <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="faq-a">Sí. YvexIQ es compatible con archivos Excel (.xlsx), CSV y bases de datos Firebird (.fdb) usadas por Eleventa y CONTPAQi. También puedes subir archivos directamente desde la web sin instalar el agente.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">
+      ¿Windows Defender marca el agente como amenaza?
+      <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="faq-a">Es posible que Windows SmartScreen muestre una advertencia la primera vez. Esto es normal para programas nuevos y no significa que sea un virus. El archivo está verificado en <a href="https://www.virustotal.com/gui/file/bdc532474e907b5622358f75ea8deffda371f2f2f7fb364b73bc3696c8c6beb4" target="_blank" style="color:var(--violet-light)">VirusTotal</a> y solo 1 de 65 antivirus lo detecta (falso positivo). Puedes ver las instrucciones para saltarlo en nuestra <a href="/descargar" style="color:var(--violet-light)">página de descarga</a>.</div>
+  </div>
+
+</div>
+
+<footer>
+  <span>© 2026 YvexIQ — Todos los derechos reservados</span>
+  <div class="footer-links">
+    <a href="/">Inicio</a>
+    <a href="/privacidad">Privacidad</a>
+    <a href="/terminos">Términos de uso</a>
+    <a href="/descargar">Descargar agente</a>
+  </div>
+</footer>
+
+<script>
+function toggleFaq(el) {
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.classList.remove('open');
+    q.nextElementSibling.classList.remove('open');
+  });
+  if (!isOpen) {
+    el.classList.add('open');
+    el.nextElementSibling.classList.add('open');
+  }
+}
+
+async function enviarFormulario() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const asunto = document.getElementById('f-asunto').value;
+  const mensaje = document.getElementById('f-mensaje').value.trim();
+
+  if (!nombre || !email || !asunto || !mensaje) {
+    document.getElementById('form-error').textContent = 'Por favor completa todos los campos obligatorios.';
+    document.getElementById('form-error').style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  // Por ahora abre el cliente de correo con los datos
+  const subject = encodeURIComponent('[YvexIQ Contacto] ' + asunto);
+  const body = encodeURIComponent(
+    'Nombre: ' + nombre + '\n' +
+    'Email: ' + email + '\n' +
+    'Asunto: ' + asunto + '\n\n' +
+    mensaje
+  );
+  window.location.href = 'mailto:contacto@yvexiq.com?subject=' + subject + '&body=' + body;
+
+  setTimeout(() => {
+    document.getElementById('form-success').style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Enviar mensaje →';
+  }, 1000);
+}
+</script>
+
+</body>
+</html>

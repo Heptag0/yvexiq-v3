@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidad — YvexIQ</title>
+<link rel="icon" href="/favicon.ico?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07081a;
+    --violet: #7c22d4;
+    --violet-light: #a855f7;
+    --magenta: #d946ef;
+    --white: #f5f3ff;
+    --dim: rgba(245,243,255,0.55);
+    --border: rgba(255,255,255,0.08);
+    --card: rgba(255,255,255,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 20% 20%, rgba(124,34,212,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(7,8,26,0.8);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--violet-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+  }
+
+  nav a.nav-back {
+    margin-left: auto;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  nav a.nav-back:hover { color: var(--white); }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 60px 40px 80px;
+  }
+
+  .doc-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .doc-badge {
+    display: inline-block;
+    background: rgba(124,34,212,0.15);
+    border: 1px solid rgba(124,34,212,0.3);
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: var(--violet-light);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .doc-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .doc-meta {
+    color: var(--dim);
+    font-size: 14px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .doc-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* Índice */
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 48px;
+  }
+
+  .toc h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+
+  .toc ol {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toc a {
+    color: var(--violet-light);
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+
+  .toc a:hover { color: var(--magenta); }
+  .toc .toc-num { color: var(--dim); font-size: 12px; width: 20px; }
+
+  /* Secciones */
+  .doc-section {
+    margin-bottom: 48px;
+    scroll-margin-top: 80px;
+  }
+
+  .doc-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-num {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--violet-light);
+    background: rgba(124,34,212,0.15);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+
+  .doc-section p {
+    color: var(--dim);
+    margin-bottom: 14px;
+    font-size: 15px;
+  }
+
+  .doc-section ul, .doc-section ol {
+    color: var(--dim);
+    font-size: 15px;
+    padding-left: 20px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .doc-section li strong { color: var(--white); }
+
+  .highlight-box {
+    background: rgba(124,34,212,0.08);
+    border: 1px solid rgba(124,34,212,0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--dim);
+  }
+
+  .highlight-box strong { color: var(--violet-light); display: block; margin-bottom: 6px; }
+
+  .contact-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-top: 16px;
+  }
+
+  .contact-card p { margin-bottom: 8px; }
+  .contact-card a { color: var(--violet-light); text-decoration: none; }
+  .contact-card a:hover { color: var(--magenta); }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  footer span { color: var(--dim); font-size: 13px; }
+
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a {
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--violet-light); }
+</style>
+</head>
+<body>
+
+<nav>
+  <img src="/yvexiq_256.png" style="width:36px;height:36px;border-radius:10px;" alt="YvexIQ">
+  <a href="/" class="nav-logo-text">YvexIQ</a>
+  <a href="/" class="nav-back">← Volver al inicio</a>
+</nav>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-badge">Legal</div>
+    <h1>Política de Privacidad</h1>
+    <div class="doc-meta">
+      <span>📅 Última actualización: junio 2026</span>
+      <span>🌐 Aplicable en México, España y LATAM</span>
+    </div>
+  </div>
+
+  <!-- Índice -->
+  <div class="toc">
+    <h3>Contenido</h3>
+    <ol>
+      <li><a href="#s1"><span class="toc-num">01</span> Responsable del tratamiento</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span> Datos que recopilamos</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span> Cómo usamos tus datos</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span> Datos de tu negocio</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span> Compartir información</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span> Seguridad</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span> Tus derechos</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span> Cookies</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span> Cambios en esta política</a></li>
+      <li><a href="#s10"><span class="toc-num">10</span> Contacto</a></li>
+    </ol>
+  </div>
+
+  <!-- Secciones -->
+  <div class="doc-section" id="s1">
+    <h2><span class="section-num">01</span> Responsable del tratamiento</h2>
+    <p>El responsable del tratamiento de tus datos personales es <strong>YvexIQ</strong>, con correo electrónico de contacto <strong>privacidad@yvexiq.com</strong>.</p>
+    <p>Al registrarte y usar YvexIQ, aceptas las prácticas descritas en esta política.</p>
+  </div>
+
+  <div class="doc-section" id="s2">
+    <h2><span class="section-num">02</span> Datos que recopilamos</h2>
+    <p>Recopilamos únicamente los datos necesarios para prestar el servicio:</p>
+    <ul>
+      <li><strong>Datos de registro:</strong> correo electrónico y contraseña (almacenada cifrada con bcrypt).</li>
+      <li><strong>Datos de uso:</strong> consultas realizadas, conexiones creadas, historial de sincronizaciones.</li>
+      <li><strong>Datos técnicos:</strong> dirección IP, tipo de sistema operativo, versión del agente.</li>
+      <li><strong>Datos de negocio:</strong> los archivos CSV o Firebird que sincronices con el agente (ver sección 4).</li>
+    </ul>
+  </div>
+
+  <div class="doc-section" id="s3">
+    <h2><span class="section-num">03</span> Cómo usamos tus datos</h2>
+    <p>Tus datos se usan exclusivamente para:</p>
+    <ul>
+      <li>Prestarte el servicio de análisis de datos en lenguaje natural.</li>
+      <li>Autenticarte y proteger tu cuenta.</li>
+      <li>Enviarte comunicaciones relacionadas con el servicio (no publicidad de terceros).</li>
+      <li>Mejorar el funcionamiento de la plataforma.</li>
+      <li>Cumplir obligaciones legales cuando corresponda.</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>No vendemos tus datos.</strong>
+      Nunca vendemos ni cedemos tus datos personales a terceros con fines comerciales o publicitarios.
+    </div>
+  </div>
+
+  <div class="doc-section" id="s4">
+    <h2><span class="section-num">04</span> Datos de tu negocio</h2>
+    <p>Cuando sincronizas archivos con el agente de YvexIQ (CSV, Excel, Firebird), esos datos se suben a nuestros servidores para permitir el análisis en lenguaje natural.</p>
+    <ul>
+      <li>Los datos se almacenan en servidores seguros ubicados en Estados Unidos (Contabo, St. Louis).</li>
+      <li>Solo tú tienes acceso a tus datos de negocio — no los compartimos con otros usuarios.</li>
+      <li>Usamos los datos únicamente para responder tus consultas mediante inteligencia artificial.</li>
+      <li>Las consultas se procesan a través de la API de Anthropic (Claude), con estrictas políticas de privacidad.</li>
+      <li>Puedes eliminar tus conexiones y datos en cualquier momento desde la plataforma.</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>Nota sobre Anthropic.</strong>
+      Las consultas en lenguaje natural se procesan usando la API de Claude de Anthropic. Anthropic tiene sus propias políticas de privacidad disponibles en anthropic.com. Los datos enviados a su API están sujetos a su política de retención de datos para uso de API.
+    </div>
+  </div>
+
+  <div class="doc-section" id="s5">
+    <h2><span class="section-num">05</span> Compartir información</h2>
+    <p>No compartimos tus datos personales con terceros, excepto en los siguientes casos:</p>
+    <ul>
+      <li><strong>Proveedores de servicio:</strong> Anthropic (procesamiento de IA), Contabo (infraestructura de servidores), Resend (envío de emails transaccionales).</li>
+      <li><strong>Obligación legal:</strong> si una autoridad competente lo requiere mediante orden judicial.</li>
+      <li><strong>Con tu consentimiento expreso.</strong></li>
+    </ul>
+    <p>Todos nuestros proveedores están sujetos a acuerdos de confidencialidad y solo procesan datos para prestar sus servicios.</p>
+  </div>
+
+  <div class="doc-section" id="s6">
+    <h2><span class="section-num">06</span> Seguridad</h2>
+    <p>Implementamos medidas técnicas y organizativas para proteger tus datos:</p>
+    <ul>
+      <li>Contraseñas cifradas con bcrypt (nunca almacenamos contraseñas en texto plano).</li>
+      <li>Comunicaciones cifradas con HTTPS/TLS.</li>
+      <li>Autenticación mediante tokens JWT de corta duración.</li>
+      <li>Acceso restringido a los datos — solo tú puedes acceder a los tuyos.</li>
+      <li>Credenciales del agente de escritorio cifradas con Fernet.</li>
+    </ul>
+    <p>Ningún sistema es 100% seguro. En caso de brecha de seguridad que afecte tus datos, te notificaremos en un plazo máximo de 72 horas.</p>
+  </div>
+
+  <div class="doc-section" id="s7">
+    <h2><span class="section-num">07</span> Tus derechos</h2>
+    <p>Tienes los siguientes derechos sobre tus datos personales:</p>
+    <ul>
+      <li><strong>Acceso:</strong> solicitar qué datos tenemos sobre ti.</li>
+      <li><strong>Rectificación:</strong> corregir datos incorrectos.</li>
+      <li><strong>Eliminación:</strong> solicitar la eliminación de tu cuenta y todos tus datos.</li>
+      <li><strong>Portabilidad:</strong> recibir tus datos en formato legible.</li>
+      <li><strong>Oposición:</strong> oponerte al tratamiento en determinadas circunstancias.</li>
+    </ul>
+    <p>Para ejercer cualquiera de estos derechos, escríbenos a <strong>privacidad@yvexiq.com</strong>. Responderemos en un plazo máximo de 30 días.</p>
+  </div>
+
+  <div class="doc-section" id="s8">
+    <h2><span class="section-num">08</span> Cookies</h2>
+    <p>YvexIQ utiliza cookies estrictamente necesarias para el funcionamiento del servicio:</p>
+    <ul>
+      <li><strong>Cookie de sesión (refresh_token):</strong> cookie HttpOnly segura que mantiene tu sesión activa. No contiene datos personales identificables.</li>
+    </ul>
+    <p>No utilizamos cookies de seguimiento, publicidad ni análisis de terceros.</p>
+  </div>
+
+  <div class="doc-section" id="s9">
+    <h2><span class="section-num">09</span> Cambios en esta política</h2>
+    <p>Podemos actualizar esta política ocasionalmente. Te notificaremos por email si los cambios son significativos. La fecha de última actualización siempre aparece al inicio del documento.</p>
+    <p>El uso continuado del servicio tras los cambios implica la aceptación de la nueva política.</p>
+  </div>
+
+  <div class="doc-section" id="s10">
+    <h2><span class="section-num">10</span> Contacto</h2>
+    <p>Para cualquier consulta sobre privacidad o ejercicio de derechos:</p>
+    <div class="contact-card">
+      <p>📧 <a href="mailto:privacidad@yvexiq.com">privacidad@yvexiq.com</a></p>
+      <p>🌐 <a href="https://yvexiq.com">yvexiq.com</a></p>
+      <p style="margin-top: 12px; font-size: 13px;">Tiempo de respuesta habitual: menos de 5 días hábiles.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>© 2026 YvexIQ — Todos los derechos reservados</span>
+  <div class="footer-links">
+    <a href="/">Inicio</a>
+    <a href="/terminos">Términos de uso</a>
+    <a href="/descargar">Descargar agente</a>
+    <a href="/contacto">Contacto</a>
+  </div>
+</footer>
+
+</body>
+</html>

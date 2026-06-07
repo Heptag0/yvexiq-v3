@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Términos de Uso — YvexIQ</title>
+<link rel="icon" href="/favicon.ico?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07081a;
+    --violet: #7c22d4;
+    --violet-light: #a855f7;
+    --magenta: #d946ef;
+    --white: #f5f3ff;
+    --dim: rgba(245,243,255,0.55);
+    --border: rgba(255,255,255,0.08);
+    --card: rgba(255,255,255,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 80% 20%, rgba(217,70,239,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    background: rgba(7,8,26,0.8);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--violet-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+  }
+
+  nav a.nav-back {
+    margin-left: auto;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  nav a.nav-back:hover { color: var(--white); }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 60px 40px 80px;
+  }
+
+  .doc-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .doc-badge {
+    display: inline-block;
+    background: rgba(217,70,239,0.12);
+    border: 1px solid rgba(217,70,239,0.25);
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: var(--magenta);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .doc-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+
+  .doc-meta {
+    color: var(--dim);
+    font-size: 14px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 48px;
+  }
+
+  .toc h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+
+  .toc ol {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toc a {
+    color: var(--violet-light);
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+
+  .toc a:hover { color: var(--magenta); }
+  .toc .toc-num { color: var(--dim); font-size: 12px; width: 20px; }
+
+  .doc-section {
+    margin-bottom: 48px;
+    scroll-margin-top: 80px;
+  }
+
+  .doc-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-num {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--magenta);
+    background: rgba(217,70,239,0.12);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+
+  .doc-section p {
+    color: var(--dim);
+    margin-bottom: 14px;
+    font-size: 15px;
+  }
+
+  .doc-section ul, .doc-section ol {
+    color: var(--dim);
+    font-size: 15px;
+    padding-left: 20px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .doc-section li strong { color: var(--white); }
+
+  .highlight-box {
+    background: rgba(217,70,239,0.06);
+    border: 1px solid rgba(217,70,239,0.15);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--dim);
+  }
+
+  .highlight-box strong { color: var(--magenta); display: block; margin-bottom: 6px; }
+
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .plan-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .plan-card .plan-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: var(--violet-light);
+  }
+
+  .plan-card .plan-price {
+    font-size: 13px;
+    color: var(--dim);
+  }
+
+  .contact-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-top: 16px;
+  }
+
+  .contact-card p { margin-bottom: 8px; color: var(--dim); font-size: 15px; }
+  .contact-card a { color: var(--violet-light); text-decoration: none; }
+  .contact-card a:hover { color: var(--magenta); }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  footer span { color: var(--dim); font-size: 13px; }
+
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a {
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--violet-light); }
+</style>
+</head>
+<body>
+
+<nav>
+  <img src="/yvexiq_256.png" style="width:36px;height:36px;border-radius:10px;" alt="YvexIQ">
+  <a href="/" class="nav-logo-text">YvexIQ</a>
+  <a href="/" class="nav-back">← Volver al inicio</a>
+</nav>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-badge">Legal</div>
+    <h1>Términos de Uso</h1>
+    <div class="doc-meta">
+      <span>📅 Última actualización: junio 2026</span>
+      <span>🌐 Aplicable en México, España y LATAM</span>
+    </div>
+  </div>
+
+  <div class="toc">
+    <h3>Contenido</h3>
+    <ol>
+      <li><a href="#s1"><span class="toc-num">01</span> Aceptación de los términos</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span> Descripción del servicio</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span> Registro y cuenta</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span> Planes y pagos</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span> Uso aceptable</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span> Propiedad intelectual</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span> Tus datos y contenido</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span> Limitación de responsabilidad</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span> Suspensión y cancelación</a></li>
+      <li><a href="#s10"><span class="toc-num">10</span> Modificaciones del servicio</a></li>
+      <li><a href="#s11"><span class="toc-num">11</span> Legislación aplicable</a></li>
+      <li><a href="#s12"><span class="toc-num">12</span> Contacto</a></li>
+    </ol>
+  </div>
+
+  <div class="doc-section" id="s1">
+    <h2><span class="section-num">01</span> Aceptación de los términos</h2>
+    <p>Al registrarte o usar YvexIQ, aceptas estos Términos de Uso en su totalidad. Si no estás de acuerdo con alguna parte, no debes usar el servicio.</p>
+    <p>Estos términos constituyen un acuerdo legal entre tú y YvexIQ. Te recomendamos leerlos detenidamente.</p>
+  </div>
+
+  <div class="doc-section" id="s2">
+    <h2><span class="section-num">02</span> Descripción del servicio</h2>
+    <p>YvexIQ es una plataforma SaaS (Software como Servicio) que permite a propietarios de negocios consultar sus bases de datos empresariales mediante lenguaje natural, sin necesidad de conocimientos técnicos de SQL.</p>
+    <p>El servicio incluye:</p>
+    <ul>
+      <li>Plataforma web accesible desde <strong>yvexiq.com</strong></li>
+      <li>Agente de escritorio para Windows (sincronización de datos local)</li>
+      <li>Análisis mediante inteligencia artificial (Claude de Anthropic)</li>
+      <li>Visualización de datos con gráficos interactivos</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>Servicio en fase beta.</strong>
+      YvexIQ se encuentra actualmente en fase beta. El servicio puede presentar interrupciones, cambios o limitaciones. Agradecemos tu comprensión y feedback durante esta etapa.
+    </div>
+  </div>
+
+  <div class="doc-section" id="s3">
+    <h2><span class="section-num">03</span> Registro y cuenta</h2>
+    <p>Para usar YvexIQ debes:</p>
+    <ul>
+      <li>Registrarte con un correo electrónico válido y una contraseña segura.</li>
+      <li>Ser mayor de 18 años o tener autorización de un adulto responsable.</li>
+      <li>Proporcionar información veraz y mantenerla actualizada.</li>
+    </ul>
+    <p>Eres responsable de mantener la confidencialidad de tu contraseña y de todas las actividades realizadas desde tu cuenta. Notifícanos inmediatamente si sospechas acceso no autorizado a tu cuenta en <strong>contacto@yvexiq.com</strong>.</p>
+  </div>
+
+  <div class="doc-section" id="s4">
+    <h2><span class="section-num">04</span> Planes y pagos</h2>
+    <p>YvexIQ ofrece distintos planes de acceso:</p>
+    <div class="plan-grid">
+      <div class="plan-card">
+        <div class="plan-name">Gratuito</div>
+        <div class="plan-price">10 consultas/día · 1 conexión</div>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Básico</div>
+        <div class="plan-price">30 consultas/día · 2 conexiones</div>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">Ilimitado · 5 conexiones</div>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price">Ilimitado · Sin límites</div>
+      </div>
+    </div>
+    <ul>
+      <li>Los planes de pago se facturan mensualmente y se renuevan automáticamente.</li>
+      <li>Puedes cancelar en cualquier momento — mantendrás el acceso hasta el final del período pagado.</li>
+      <li>No ofrecemos reembolsos por períodos parciales salvo que la ley lo exija.</li>
+      <li>Nos reservamos el derecho de modificar los precios con al menos 30 días de aviso previo.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section" id="s5">
+    <h2><span class="section-num">05</span> Uso aceptable</h2>
+    <p>Puedes usar YvexIQ para analizar datos legítimos de tu negocio. Está prohibido:</p>
+    <ul>
+      <li>Usar el servicio para actividades ilegales o fraudulentas.</li>
+      <li>Subir datos de terceros sin su consentimiento.</li>
+      <li>Intentar acceder a datos de otros usuarios.</li>
+      <li>Realizar ataques o intentos de vulnerar la seguridad de la plataforma.</li>
+      <li>Usar el servicio para generar spam o contenido malicioso.</li>
+      <li>Revender o sublicenciar el acceso al servicio sin autorización.</li>
+      <li>Usar bots o sistemas automatizados para abusar de los límites del plan.</li>
+    </ul>
+    <p>El incumplimiento de estas normas puede resultar en la suspensión inmediata de tu cuenta.</p>
+  </div>
+
+  <div class="doc-section" id="s6">
+    <h2><span class="section-num">06</span> Propiedad intelectual</h2>
+    <p>Todo el código, diseño, marca, logotipos y contenido de YvexIQ son propiedad de YvexIQ y están protegidos por las leyes de propiedad intelectual aplicables.</p>
+    <p>No puedes copiar, modificar, distribuir, vender o crear trabajos derivados de ningún elemento de YvexIQ sin autorización expresa por escrito.</p>
+    <p>El nombre "YvexIQ" y su logotipo son marcas de YvexIQ. No puedes usarlos sin permiso.</p>
+  </div>
+
+  <div class="doc-section" id="s7">
+    <h2><span class="section-num">07</span> Tus datos y contenido</h2>
+    <p>Los datos de tu negocio que sincronices con YvexIQ son y seguirán siendo tuyos. Al usar el servicio nos otorgas una licencia limitada para procesar esos datos únicamente con el fin de prestarte el servicio.</p>
+    <ul>
+      <li>No reclamamos propiedad sobre tus datos empresariales.</li>
+      <li>Puedes eliminar tus datos en cualquier momento desde la plataforma.</li>
+      <li>Al cancelar tu cuenta, tus datos se eliminarán de nuestros servidores en un plazo de 30 días.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section" id="s8">
+    <h2><span class="section-num">08</span> Limitación de responsabilidad</h2>
+    <p>YvexIQ se proporciona "tal cual" y "según disponibilidad". No garantizamos que el servicio sea ininterrumpido, libre de errores o que los resultados sean 100% precisos.</p>
+    <div class="highlight-box">
+      <strong>Importante sobre las respuestas de IA.</strong>
+      Las respuestas generadas por inteligencia artificial pueden contener errores. YvexIQ es una herramienta de apoyo para la toma de decisiones, no un sustituto del criterio profesional. Verifica siempre la información crítica antes de tomar decisiones importantes.
+    </div>
+    <p>En ningún caso YvexIQ será responsable de daños indirectos, pérdida de beneficios, pérdida de datos o cualquier daño consecuente derivado del uso o imposibilidad de uso del servicio.</p>
+    <p>Nuestra responsabilidad máxima estará limitada al importe pagado por el usuario en los últimos 3 meses.</p>
+  </div>
+
+  <div class="doc-section" id="s9">
+    <h2><span class="section-num">09</span> Suspensión y cancelación</h2>
+    <p>Puedes cancelar tu cuenta en cualquier momento contactando a <strong>contacto@yvexiq.com</strong>.</p>
+    <p>Nos reservamos el derecho de suspender o cancelar cuentas que:</p>
+    <ul>
+      <li>Incumplan estos términos de uso.</li>
+      <li>Realicen actividades fraudulentas o ilegales.</li>
+      <li>Intenten comprometer la seguridad de la plataforma o de otros usuarios.</li>
+      <li>Tengan pagos pendientes o fallidos reiterados.</li>
+    </ul>
+    <p>En casos graves, la suspensión puede ser inmediata y sin previo aviso.</p>
+  </div>
+
+  <div class="doc-section" id="s10">
+    <h2><span class="section-num">10</span> Modificaciones del servicio</h2>
+    <p>Podemos modificar, suspender o discontinuar cualquier parte del servicio en cualquier momento. Te notificaremos con al menos 30 días de antelación si los cambios son significativos.</p>
+    <p>También podemos actualizar estos términos. Te avisaremos por email si los cambios son relevantes. El uso continuado del servicio implica la aceptación de los nuevos términos.</p>
+  </div>
+
+  <div class="doc-section" id="s11">
+    <h2><span class="section-num">11</span> Legislación aplicable</h2>
+    <p>Estos términos se rigen por las leyes aplicables en México. Para usuarios en España y otros países de la Unión Europea, también se aplica la normativa europea pertinente (incluyendo el RGPD en materia de protección de datos).</p>
+    <p>Cualquier disputa que no pueda resolverse amistosamente se someterá a los tribunales competentes.</p>
+  </div>
+
+  <div class="doc-section" id="s12">
+    <h2><span class="section-num">12</span> Contacto</h2>
+    <p>Para cualquier consulta sobre estos términos:</p>
+    <div class="contact-card">
+      <p>📧 <a href="mailto:contacto@yvexiq.com">contacto@yvexiq.com</a></p>
+      <p>📧 <a href="mailto:privacidad@yvexiq.com">privacidad@yvexiq.com</a> (temas de privacidad)</p>
+      <p>🌐 <a href="https://yvexiq.com">yvexiq.com</a></p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>© 2026 YvexIQ — Todos los derechos reservados</span>
+  <div class="footer-links">
+    <a href="/">Inicio</a>
+    <a href="/privacidad">Privacidad</a>
+    <a href="/descargar">Descargar agente</a>
+    <a href="/contacto">Contacto</a>
+  </div>
+</footer>
+
+</body>
+</html>
