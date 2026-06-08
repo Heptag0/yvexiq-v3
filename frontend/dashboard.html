@@ -933,6 +933,9 @@
             };
             document.querySelector('.sb-user-plan').textContent = planTextos[data.plan] || data.plan;
 
+	    // Mostrar banner si email no verificado
+            if (!data.email_verificado) { mostrarBannerVerificacion(); }
+
             // Activar opciones de soporte según plan
             if (data.plan === 'pro' || data.plan === 'enterprise') {
                 const waEl = document.getElementById('soporte-whatsapp');
@@ -977,6 +980,21 @@ function toggleSoporte() {
 document.getElementById('modal-soporte').addEventListener('click', function(e) {
   if (e.target === this) toggleSoporte();
 });
+
+function mostrarBannerVerificacion() {
+    if (document.getElementById('banner-verificacion')) return;
+    const banner = document.createElement('div');
+    banner.id = 'banner-verificacion';
+    banner.style.cssText = 'background:rgba(217,70,239,0.1);border:1px solid rgba(217,70,239,0.25);border-radius:12px;padding:12px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;';
+    banner.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📧</span><span style="font-size:14px;color:rgba(245,243,255,0.8);"><strong style="color:#f0abfc;">Confirma tu correo electronico</strong> — Revisa tu bandeja de entrada. Tu cuenta se eliminara en 7 dias si no confirmas.</span></div><button onclick="reenviarVerificacion()" style="background:rgba(217,70,239,0.2);border:1px solid rgba(217,70,239,0.3);border-radius:8px;color:#d946ef;padding:6px 14px;font-size:13px;cursor:pointer;white-space:nowrap;">Reenviar email</button>';
+    const mainContent = document.querySelector('.chat-wrapper') || document.querySelector('.main');
+    if (mainContent) mainContent.prepend(banner);
+}
+
+async function reenviarVerificacion() {
+    const res = await fetchConAuth(API + '/reenviar-verificacion', { method: 'POST' });
+    if (res && res.ok) alert('Email reenviado. Revisa tu bandeja de entrada.');
+}
 
   </script>
 </body>
