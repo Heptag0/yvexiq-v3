@@ -264,6 +264,7 @@
                   <th>Total consultas</th>
                   <th>Conexiones</th>
                   <th>Registro</th>
+                  <th>Email</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -393,8 +394,14 @@
           '<td>' + u.consultas_total + '</td>' +
           '<td>' + u.conexiones + (u.limite_conexiones === null ? '/∞' : '/' + u.limite_conexiones) + '</td>' +
           '<td>' + fecha + '</td>' +
+          '<td>' + (u.email_verificado
+            ? '<span class="badge badge-activo">✓ Verificado</span>'
+            : (u.dias_para_verificar !== null && u.dias_para_verificar !== undefined
+              ? '<span class="badge badge-inactivo">⏳ ' + u.dias_para_verificar + 'd</span>'
+              : '<span class="badge badge-inactivo">No verificado</span>')) + '</td>' +
           '<td style="display:flex;gap:6px;">' +
           '<button class="btn-action btn-plan" onclick="abrirModalPlan(' + u.id + ', \'' + u.plan + '\', ' + u.suscripcion_activa + ')">Plan</button>' +
+          (!u.email_verificado ? '<button class="btn-action" style="background:rgba(217,70,239,0.15);color:#d946ef;border-color:rgba(217,70,239,0.3);" onclick="reenviarVerificacionAdmin(' + u.id + ', \'' + u.email + '\')">📧</button>' : '') +
           (u.es_admin ? '' : '<button class="btn-action btn-delete" onclick="eliminarUsuario(' + u.id + ', \'' + u.email + '\')">Eliminar</button>') +
           '</td>';
         tbody.appendChild(tr);
@@ -455,6 +462,18 @@
       t.className = 'toast ' + type;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    async function reenviarVerificacionAdmin(id, email) {
+      if (!confirm('¿Reenviar email de verificación a ' + email + '?')) return;
+      try {
+        const res = await fetchConAuth(API + '/admin/usuarios/' + id + '/reenviar-verificacion', { method: 'POST' });
+        if (res.ok) {
+          showToast('Email reenviado a ' + email, 'ok');
+        } else {
+          showToast('Error al reenviar email', 'err');
+        }
+      } catch { showToast('Error de conexión', 'err'); }
     }
 
     cargarDatos();
