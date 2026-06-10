@@ -486,7 +486,7 @@
       <div class="header-right">
         <div class="conn-selector" onclick="toggleConnDropdown()">
             <div class="conn-dot"></div>
-            <span id="conn-name">Cargando...</span>
+            <span id="conn-name">Sin conexión</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div id="conn-dropdown" style="
@@ -521,7 +521,7 @@
       <div class="active-conn">
         <div class="active-conn-dot"></div>
         <span>Consultando:</span>
-        <span class="active-conn-name" id="active-conn-label">Mi Eleventa</span>
+        <span class="active-conn-name" id="active-conn-label">Sin conexión</span>
       </div>
       <div class="input-row">
         <div class="input-wrap">
@@ -867,6 +867,11 @@
             if (!res || !res.ok) return;
             conexiones = await res.json();
 
+	    if (conexiones.length === 0) {
+		document.getElementById('active-conn-label').textContent = 'Sin conexión';
+		document.getElementById('conn-name').textContent = 'Sin conexión';
+		return;
+	    }
             if (!connId && conexiones.length > 0) {
                 connId = conexiones[0].id;
                 localStorage.setItem('yvex_conn_id', connId);

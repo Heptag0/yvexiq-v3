@@ -11,8 +11,29 @@ from llm import generate_sql, generate_explanation, generate_chart, generate_fal
 from query_executor import ejecutar_query, ejecutar_query_sync
 from schema_detector import detectar_schema, detectar_schema_sync
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from limits import verificar_limite_consultas, verificar_limite_conexiones
+import secrets
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
+def limpiar_cuentas_no_verificadas():
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        hace_7_dias = datetime.now() - timedelta(days=7)
+        db.query(Usuario).filter(
+            Usuario.email_verificado == False,
+            Usuario.fecha_registro < hace_7_dias
+        ).delete()
+        db.commit()
+    finally:
+        db.close()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(limpiar_cuentas_no_verificadas, 'interval', hours=24)
+scheduler.start()
+
 
 # Crear tabla en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -23,7 +44,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500"],
+    allow_origins=["https://yvexiq.com", "https://www.yvexiq.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,16 +66,47 @@ def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
     if existing_user is not None:
         raise HTTPException(status_code=400, detail="El correo ya esta registrado")
     user.password = auth.hash_password(user.password)
+    token = secrets.token_hex(32)
     db_user = Usuario(
-        email=user.email, 
+        email=user.email,
         password=user.password,
         tipo_suscripcion="gratuito",
         suscripcion_activa=True,
         fecha_registro=datetime.now(),
-            )
+        email_verificado=False,
+        token_verificacion=token,
+        fecha_token_verificacion=datetime.now()
+    )
     db.add(db_user)
     db.commit()
+    from email_service import enviar_email_verificacion
+    enviar_email_verificacion(user.email, token)
     return {"message": "Usuario registrado exitosamente"}
+
+@app.get("/verificar-email")
+def verificar_email(token: str, db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.token_verificacion == token).first()
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Token inválido")
+    if (datetime.now() - usuario.fecha_token_verificacion).days > 7:
+        raise HTTPException(status_code=400, detail="Token expirado")
+    usuario.email_verificado = True
+    usuario.token_verificacion = None
+    db.commit()
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="https://yvexiq.com/login?verificado=1")
+
+@app.post("/reenviar-verificacion")
+def reenviar_verificacion(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    if current_user.email_verificado:
+        raise HTTPException(status_code=400, detail="Email ya verificado")
+    token = secrets.token_hex(32)
+    current_user.token_verificacion = token
+    current_user.fecha_token_verificacion = datetime.now()
+    db.commit()
+    from email_service import enviar_email_verificacion
+    enviar_email_verificacion(current_user.email, token)
+    return {"message": "Email de verificacion reenviado"}
 
 @app.post("/login")
 def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -79,7 +131,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,
+        secure=True,
         samesite="lax",
         max_age=60 * 60 * 24 * 7
     )
@@ -185,9 +237,11 @@ def eliminar_conexion(id: int, current_user: Usuario = Depends(auth.get_current_
         raise HTTPException(status_code=404, detail="Conexion no encontrada")
     if db_conexion.usuario_id != current_user.id:
         raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+    db.query(Historial).filter(Historial.conexion_id == id).delete()
     db.delete(db_conexion)
     db.commit()
     return {"message": "Conexion eliminada exitosamente"}
+
 
 @app.get("/historial", response_model=list[HistorialResponse])
 def obtener_historial(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
@@ -233,7 +287,8 @@ def get_me(current_user: Usuario = Depends(auth.get_current_user)):
         "email": current_user.email,
         "plan": get_plan(current_user),
         "suscripcion_activa": current_user.suscripcion_activa,
-        "fecha_vencimiento": current_user.fecha_vencimiento
+        "fecha_vencimiento": current_user.fecha_vencimiento,
+        "email_verificado": current_user.email_verificado
     }
 
 @app.delete("/historial")
@@ -273,7 +328,10 @@ def admin_usuarios(db: Session = Depends(get_db), admin: Usuario = Depends(verif
             "consultas_total": consultas_total,
             "conexiones": conexiones,
             "limite_consultas": PLANES[plan]["consultas_por_dia"],
-            "limite_conexiones": PLANES[plan]["conexiones_max"]
+            "limite_conexiones": PLANES[plan]["conexiones_max"],
+	    "email_verificado": u.email_verificado,
+	    "dias_para_verificar": max(0, 7 - (datetime.now() - u.fecha_registro).days) if not u.email_verificado else None
+
         })
     return resultado
 
@@ -298,6 +356,21 @@ def admin_eliminar_usuario(id: int, db: Session = Depends(get_db), admin: Usuari
     db.commit()
     return {"message": "Usuario eliminado"}
 
+@app.post("/admin/usuarios/{id}/reenviar-verificacion")
+def admin_reenviar_verificacion(id: int, db: Session = Depends(get_db), admin: Usuario = Depends(verificar_admin)):
+    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if usuario.email_verificado:
+        raise HTTPException(status_code=400, detail="Email ya verificado")
+    token = secrets.token_hex(32)
+    usuario.token_verificacion = token
+    usuario.fecha_token_verificacion = datetime.now()
+    db.commit()
+    from email_service import enviar_email_verificacion
+    enviar_email_verificacion(usuario.email, token)
+    return {"message": "Email reenviado"}
+
 @app.get("/admin/metricas")
 def admin_metricas(db: Session = Depends(get_db), admin: Usuario = Depends(verificar_admin)):
     from datetime import date
@@ -318,3 +391,41 @@ def admin_metricas(db: Session = Depends(get_db), admin: Usuario = Depends(verif
         "consultas_total": consultas_total,
         "por_plan": por_plan
     }
+
+@app.post("/contacto")
+def formulario_contacto(data: dict):
+    nombre = data.get("nombre", "").strip()
+    email = data.get("email", "").strip()
+    asunto = data.get("asunto", "").strip()
+    plan = data.get("plan", "")
+    mensaje = data.get("mensaje", "").strip()
+    
+    if not nombre or not email or not asunto or not mensaje:
+        raise HTTPException(status_code=400, detail="Faltan campos obligatorios")
+    
+    from email_service import enviar_email_contacto
+    enviado = enviar_email_contacto(nombre, email, asunto, plan, mensaje)
+    
+    if not enviado:
+        raise HTTPException(status_code=500, detail="Error al enviar el mensaje")
+    
+    return {"message": "Mensaje enviado correctamente"}
+
+
+@app.post("/analizar-schema")
+def analizar_schema(
+    payload: dict,
+    current_user: Usuario = Depends(auth.get_current_user)
+):
+    schema = payload.get("schema", "")
+    if not schema:
+        raise HTTPException(status_code=400, detail="Schema vacío")
+    
+    import anthropic as ant
+    client = ant.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    mensaje = client.messages.create(
+        model="claude-haiku-4-5",
+        max_tokens=256,
+        messages=[{"role": "user", "content": f"Eres un experto en bases de datos de negocios. Aquí está un listado de tablas con su número de filas:\n{schema}\nDevuelve ÚNICAMENTE los nombres de las tablas relevantes para analizar ventas y operaciones del negocio, separados por coma. Solo los nombres, sin explicaciones."}]
+    )
+    return {"tablas": mensaje.content[0].text}

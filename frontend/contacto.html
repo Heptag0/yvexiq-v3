@@ -512,33 +512,46 @@ async function enviarFormulario() {
   const nombre = document.getElementById('f-nombre').value.trim();
   const email = document.getElementById('f-email').value.trim();
   const asunto = document.getElementById('f-asunto').value;
+  const plan = document.getElementById('f-plan').value;
   const mensaje = document.getElementById('f-mensaje').value.trim();
 
   if (!nombre || !email || !asunto || !mensaje) {
     document.getElementById('form-error').textContent = 'Por favor completa todos los campos obligatorios.';
     document.getElementById('form-error').style.display = 'block';
+    document.getElementById('form-success').style.display = 'none';
     return;
   }
 
   const btn = document.getElementById('btn-enviar');
   btn.disabled = true;
   btn.textContent = 'Enviando...';
+  document.getElementById('form-error').style.display = 'none';
 
-  // Por ahora abre el cliente de correo con los datos
-  const subject = encodeURIComponent('[YvexIQ Contacto] ' + asunto);
-  const body = encodeURIComponent(
-    'Nombre: ' + nombre + '\n' +
-    'Email: ' + email + '\n' +
-    'Asunto: ' + asunto + '\n\n' +
-    mensaje
-  );
-  window.location.href = 'mailto:contacto@yvexiq.com?subject=' + subject + '&body=' + body;
+  try {
+    const res = await fetch('/api/contacto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, email, asunto, plan, mensaje })
+    });
 
-  setTimeout(() => {
-    document.getElementById('form-success').style.display = 'block';
+    if (res.ok) {
+      document.getElementById('form-success').style.display = 'block';
+      document.getElementById('f-nombre').value = '';
+      document.getElementById('f-email').value = '';
+      document.getElementById('f-asunto').value = '';
+      document.getElementById('f-plan').value = '';
+      document.getElementById('f-mensaje').value = '';
+    } else {
+      document.getElementById('form-error').textContent = 'Error al enviar. Escríbenos a contacto@yvexiq.com';
+      document.getElementById('form-error').style.display = 'block';
+    }
+  } catch {
+    document.getElementById('form-error').textContent = 'Error de conexión. Escríbenos a contacto@yvexiq.com';
+    document.getElementById('form-error').style.display = 'block';
+  } finally {
     btn.disabled = false;
     btn.textContent = 'Enviar mensaje →';
-  }, 1000);
+  }
 }
 </script>
 

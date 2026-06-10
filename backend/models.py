@@ -14,6 +14,9 @@ class Usuario(Base):
     fecha_registro = Column(DateTime)
     refresh_token = Column(String, nullable=True)
     es_admin = Column(Boolean, default=False)
+    email_verificado = Column(Boolean, default=False)
+    token_verificacion = Column(String(64), nullable=True)
+    fecha_token_verificacion = Column(DateTime, nullable=True)
 class Conexion(Base):
     __tablename__ = "conexiones"
     id = Column(Integer, primary_key=True, index=True)
