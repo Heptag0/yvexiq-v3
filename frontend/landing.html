@@ -180,6 +180,28 @@
       .hero { padding: 100px 20px 60px; }
       footer { flex-direction: column; align-items: center; text-align: center; padding: 32px 24px; }
     }
+
+    /* ===== MOVIMIENTO AL SCROLL (reveal + profundidad) ===== */
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); will-change: opacity, transform; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    /* variantes de entrada */
+    .reveal.from-left  { transform: translateX(-50px); }
+    .reveal.from-right { transform: translateX(50px); }
+    .reveal.from-left.visible, .reveal.from-right.visible { transform: translateX(0); }
+    .reveal.scale-in   { transform: translateY(40px) scale(0.96); }
+    .reveal.scale-in.visible { transform: translateY(0) scale(1); }
+    /* escalonado para grids de tarjetas */
+    .reveal.d1 { transition-delay: 0.08s; }
+    .reveal.d2 { transition-delay: 0.16s; }
+    .reveal.d3 { transition-delay: 0.24s; }
+    .reveal.d4 { transition-delay: 0.32s; }
+    .reveal.d5 { transition-delay: 0.40s; }
+    /* parallax: las auroras se mueven con el scroll vía variable */
+    .ha, .ca { will-change: transform; }
+    /* título de sección con un leve gradiente animado al revelarse */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -241,15 +263,15 @@
             <div class="demo-msg-ai">
               <div class="demo-ai-icon">Y</div>
               <div class="demo-bubble-ai">
-                Aquí están tus productos más vendidos. Las cervezas Pacifico dominan tus ventas, representando casi el 40% del volumen total.
+                El refresco de cola lidera en unidades, pero fíjate en algo: los cigarros venden menos piezas y aun así te dejan más dinero en caja. El producto más vendido no siempre es el que más te conviene.
                 <table class="demo-table">
                   <thead><tr><th>Producto</th><th>Unidades</th><th>Ingresos</th></tr></thead>
                   <tbody>
-                    <tr><td>8 Pacifico Light Bote</td><td>5,689</td><td>$34,134</td></tr>
-                    <tr><td>Cigarro Suelto</td><td>5,446</td><td>$21,784</td></tr>
-                    <tr><td>Ballena Pacifico</td><td>3,842</td><td>$115,260</td></tr>
-                    <tr><td>6 Bote Modelo Especial</td><td>2,434</td><td>$43,812</td></tr>
-                    <tr><td>Cigarro Suelto 5</td><td>2,052</td><td>$8,208</td></tr>
+                    <tr><td>Refresco Cola 600ml</td><td>1,240</td><td>$18,600</td></tr>
+                    <tr><td>Cigarros (cajetilla)</td><td>980</td><td>$63,700</td></tr>
+                    <tr><td>Agua 1L</td><td>870</td><td>$8,700</td></tr>
+                    <tr><td>Sabritas surtidas</td><td>760</td><td>$13,680</td></tr>
+                    <tr><td>Cerveza lata 355ml</td><td>645</td><td>$12,255</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -262,25 +284,25 @@
 
   <section id="como-funciona">
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center">
+      <div class="section-center reveal">
         <div class="section-label">Proceso</div>
         <h2 class="section-title">Tan simple como <em>hacer una pregunta</em></h2>
         <p class="section-sub">Tres pasos y tu negocio empieza a hablarte en datos.</p>
       </div>
       <div class="steps">
-        <div class="step">
+        <div class="step reveal scale-in d1">
           <div class="step-num">01</div>
           <div class="step-icon">🔌</div>
           <div class="step-title">Conecta tu base de datos</div>
           <div class="step-desc">Instala el agente local en tu PC. Detecta automáticamente tu sistema Eleventa, CONTPAQi, Excel o CSV. Sin configuración técnica.</div>
         </div>
-        <div class="step">
+        <div class="step reveal scale-in d2">
           <div class="step-num">02</div>
           <div class="step-icon">✦</div>
           <div class="step-title">YvexIQ aprende tu negocio</div>
           <div class="step-desc">Nuestra IA analiza la estructura de tus datos y aprende qué tablas y columnas son importantes para tu tipo de negocio.</div>
         </div>
-        <div class="step">
+        <div class="step reveal scale-in d3">
           <div class="step-num">03</div>
           <div class="step-icon">💬</div>
           <div class="step-title">Pregunta lo que quieras</div>
@@ -292,48 +314,48 @@
 
   <section id="features" class="features-bg">
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center">
+      <div class="section-center reveal">
         <div class="section-label">Funciones</div>
         <h2 class="section-title">Todo lo que necesitas para<br><em>entender tu negocio</em></h2>
       </div>
       <div class="features-grid">
-        <div class="feat"><div class="feat-icon">🧠</div><div class="feat-title">IA generativa avanzada</div><div class="feat-desc">Powered by Claude Haiku — el modelo más preciso para análisis de datos de negocio. Respuestas en menos de 3 segundos.</div></div>
-        <div class="feat"><div class="feat-icon">📊</div><div class="feat-title">Gráficos automáticos</div><div class="feat-desc">YvexIQ decide qué tipo de gráfico es más apropiado para cada consulta y lo genera automáticamente con visualizaciones interactivas.</div></div>
-        <div class="feat"><div class="feat-icon">💬</div><div class="feat-title">Explicaciones en lenguaje natural</div><div class="feat-desc">No solo datos — también interpretaciones claras. Como tener un analista de negocio disponible 24/7.</div></div>
-        <div class="feat"><div class="feat-icon">🔒</div><div class="feat-title">Tus datos, tu privacidad</div><div class="feat-desc">Los datos nunca salen de tu control. El agente local sincroniza de forma segura y encriptada con tu cuenta personal.</div></div>
-        <div class="feat"><div class="feat-icon">🔌</div><div class="feat-title">Compatible con tu software</div><div class="feat-desc">Funciona con Eleventa, CONTPAQi, Excel y CSV. Sin necesidad de cambiar el software que ya usas en tu negocio.</div></div>
-        <div class="feat"><div class="feat-icon">📱</div><div class="feat-title">Acceso desde cualquier lugar</div><div class="feat-desc">Consulta los datos de tu negocio desde el navegador, en cualquier dispositivo, sin necesidad de estar en tu computadora.</div></div>
+        <div class="feat reveal scale-in d1"><div class="feat-icon">🧠</div><div class="feat-title">IA generativa avanzada</div><div class="feat-desc">Inteligencia artificial de última generación, optimizada para el análisis de datos de negocio. Respuestas en segundos.</div></div>
+        <div class="feat reveal scale-in d2"><div class="feat-icon">📊</div><div class="feat-title">Gráficos automáticos</div><div class="feat-desc">YvexIQ decide qué tipo de gráfico es más apropiado para cada consulta y lo genera automáticamente con visualizaciones interactivas.</div></div>
+        <div class="feat reveal scale-in d3"><div class="feat-icon">💬</div><div class="feat-title">Explicaciones en lenguaje natural</div><div class="feat-desc">No solo datos — también interpretaciones claras. Como tener un analista de negocio disponible 24/7.</div></div>
+        <div class="feat reveal scale-in d1"><div class="feat-icon">🔒</div><div class="feat-title">Tus datos, tu privacidad</div><div class="feat-desc">Los datos nunca salen de tu control. El agente local sincroniza de forma segura y encriptada con tu cuenta personal.</div></div>
+        <div class="feat reveal scale-in d2"><div class="feat-icon">🔌</div><div class="feat-title">Compatible con tu software</div><div class="feat-desc">Funciona con Eleventa, CONTPAQi, Excel y CSV. Sin necesidad de cambiar el software que ya usas en tu negocio.</div></div>
+        <div class="feat reveal scale-in d3"><div class="feat-icon">📱</div><div class="feat-title">Acceso desde cualquier lugar</div><div class="feat-desc">Consulta los datos de tu negocio desde el navegador, en cualquier dispositivo, sin necesidad de estar en tu computadora.</div></div>
       </div>
     </div>
   </section>
 
   <section>
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center">
+      <div class="section-center reveal">
         <div class="section-label">Compatibilidad</div>
         <h2 class="section-title">Funciona con el software<br><em>que ya usas</em></h2>
         <p class="section-sub">Compatible con los sistemas más populares en México, España y LATAM. Sin migraciones ni cambios.</p>
       </div>
       <div class="compat-row">
-        <div class="compat-chip"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Eleventa</div><div class="compat-chip-sub">Punto de venta México</div></div></div>
-        <div class="compat-chip"><div class="compat-chip-icon">📋</div><div><div class="compat-chip-name">CONTPAQi</div><div class="compat-chip-sub">Contabilidad y nómina</div></div></div>
-        <div class="compat-chip"><div class="compat-chip-icon">📊</div><div><div class="compat-chip-name">Excel / CSV</div><div class="compat-chip-sub">Universal</div></div></div>
-        <div class="compat-chip"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Firebird</div><div class="compat-chip-sub">Motor de BD legacy</div></div></div>
-        <div class="compat-chip"><div class="compat-chip-icon">🔜</div><div><div class="compat-chip-name">Más próximamente</div><div class="compat-chip-sub">MySQL, SQL Server...</div></div></div>
+        <div class="compat-chip reveal d1"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Eleventa</div><div class="compat-chip-sub">Punto de venta México</div></div></div>
+        <div class="compat-chip reveal d2"><div class="compat-chip-icon">📋</div><div><div class="compat-chip-name">CONTPAQi</div><div class="compat-chip-sub">Contabilidad y nómina</div></div></div>
+        <div class="compat-chip reveal d3"><div class="compat-chip-icon">📊</div><div><div class="compat-chip-name">Excel / CSV</div><div class="compat-chip-sub">Universal</div></div></div>
+        <div class="compat-chip reveal d4"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Firebird</div><div class="compat-chip-sub">Motor de BD legacy</div></div></div>
+        <div class="compat-chip reveal d5"><div class="compat-chip-icon">🔜</div><div><div class="compat-chip-name">Más próximamente</div><div class="compat-chip-sub">MySQL, SQL Server...</div></div></div>
       </div>
     </div>
   </section>
 
   <section id="precios" class="features-bg">
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center">
+      <div class="section-center reveal">
         <div class="section-label">Precios</div>
         <h2 class="section-title">Simple, transparente,<br><em>sin sorpresas</em></h2>
         <p class="section-sub">Empieza gratis y escala cuando lo necesites.</p>
       </div>
 
       <div class="pricing-grid">
-        <div class="plan">
+        <div class="plan reveal scale-in d1">
           <div class="plan-name">Gratuito</div>
           <div class="plan-price"><sup id="sym-0">$</sup><span id="price-0">0</span><span id="per-0">/mes</span></div>
           <div class="plan-desc">Para explorar YvexIQ y ver si es lo que necesitas.</div>
@@ -346,7 +368,7 @@
           <a class="btn-plan btn-plan-outline" href="login.html">Empezar gratis</a>
         </div>
 
-        <div class="plan featured">
+        <div class="plan featured reveal scale-in d2">
           <div class="plan-badge">⚡ Más popular</div>
           <div class="plan-name">Básico</div>
           <div class="plan-price"><sup id="sym-1">$</sup><span id="price-1">150</span><span id="per-1">/mes MXN</span></div>
@@ -355,13 +377,13 @@
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>30 consultas por día</div>
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>2 conexiones de base de datos</div>
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Gráficos interactivos ECharts</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Análisis con Claude Haiku</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Análisis con inteligencia artificial</div>
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Historial de consultas</div>
           </div>
           <a class="btn-plan btn-plan-filled" href="login.html">Empezar ahora</a>
         </div>
 
-        <div class="plan">
+        <div class="plan reveal scale-in d3">
           <div class="plan-name">Pro</div>
           <div class="plan-price"><sup id="sym-2">$</sup><span id="price-2">300</span><span id="per-2">/mes MXN</span></div>
           <div class="plan-desc">Para negocios que necesitan análisis avanzado sin límites.</div>
@@ -384,7 +406,7 @@
       <div class="ca ca1"></div>
       <div class="ca ca2"></div>
     </div>
-    <div class="cta-content">
+    <div class="cta-content reveal scale-in">
       <h2 class="cta-title">Tu negocio tiene<br><em>muchas respuestas.</em><br>Solo hay que preguntar.</h2>
       <p class="cta-sub">Únete a los negocios hispanohablantes que ya toman decisiones basadas en datos, sin necesidad de ser expertos en tecnología.</p>
       <a class="btn-hero" href="login.html">
@@ -424,6 +446,42 @@
         }
         document.getElementById('region-note').textContent = p.note;
     }
+
+    // ===== REVEAL AL SCROLL =====
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          io.unobserve(entry.target); // una sola vez
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // ===== PARALLAX SUTIL EN AURORAS =====
+    // Las auroras del hero ya tienen animacion (haFloat) que usa transform.
+    // Para no pisarla, movemos el CONTENEDOR (.hero-aurora / .cta-aurora), no cada aurora.
+    const auroraLayers = document.querySelectorAll('.hero-aurora, .cta-aurora');
+    let ticking = false;
+    function parallax() {
+      const y = window.scrollY;
+      auroraLayers.forEach((layer) => {
+        // desplaza la capa entera lentamente respecto al scroll
+        const rect = layer.getBoundingClientRect();
+        layer.style.transform = `translateY(${y * 0.18}px)`;
+      });
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(parallax); ticking = true; }
+    }, { passive: true });
+
+    // ===== NAVBAR: sombra al bajar =====
+    const navEl = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) { navEl.style.boxShadow = '0 4px 24px rgba(0,0,10,0.4)'; }
+      else { navEl.style.boxShadow = 'none'; }
+    }, { passive: true });
 
     async function detectarRegion() {
         try {
