@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07081a;
+    --bg: #08091a;
     --bg2: #0d0f28;
     --violet: #7c22d4;
     --violet-light: #a855f7;
@@ -424,6 +424,17 @@
     transition: color 0.2s;
   }
   .footer-links a:hover { color: var(--violet-light); }
+
+  /* ===== MOVIMIENTO AL SCROLL ===== */
+  .reveal { opacity: 0; transform: translateY(34px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); will-change: opacity, transform; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal.d1 { transition-delay: 0.08s; }
+  .reveal.d2 { transition-delay: 0.16s; }
+  .reveal.d3 { transition-delay: 0.24s; }
+  .reveal.d4 { transition-delay: 0.32s; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -454,7 +465,7 @@
 
 <!-- Seguridad -->
 <div class="security-bar">
-  <div class="security-card">
+  <div class="security-card reveal">
     <div class="security-icon">🛡️</div>
     <div class="security-text">
       <strong>Archivo verificado y seguro</strong>
@@ -467,7 +478,7 @@
 </div>
 
 <!-- Paso 1: Extraer ZIP -->
-<div class="section">
+<div class="section reveal">
   <h2 class="section-title"><span class="num">1</span> Extrae el archivo ZIP</h2>
   <div class="steps">
     <div class="step">
@@ -502,7 +513,7 @@
 </div>
 
 <!-- Paso 2: SmartScreen -->
-<div class="section">
+<div class="section reveal">
   <h2 class="section-title"><span class="num">2</span> Si aparece el aviso de Windows</h2>
 
   <div class="smartscreen-grid">
@@ -534,7 +545,7 @@
 </div>
 
 <!-- Requisitos -->
-<div class="section">
+<div class="section reveal">
   <h2 class="section-title"><span class="num">3</span> Requisitos del sistema</h2>
   <div class="req-grid">
     <div class="req-item">
@@ -582,5 +593,13 @@
   </div>
 </footer>
 
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
 </body>
 </html>

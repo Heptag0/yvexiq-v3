@@ -7,12 +7,13 @@ from models import Usuario, Conexion, Historial
 from schemas import UsuarioCreate, UsuarioLogin, Consulta, ConexionCreate, ConexionResponse, HistorialResponse
 from database import get_db
 import auth
-from llm import generate_sql, generate_explanation, generate_chart, generate_fallback
+from llm import generate_sql, generate_explanation, generate_chart, generate_fallback, corregir_sql
 from query_executor import ejecutar_query, ejecutar_query_sync
 from schema_detector import detectar_schema, detectar_schema_sync
 import os
 from datetime import datetime, timedelta
 from limits import verificar_limite_consultas, verificar_limite_conexiones
+import analisis
 import secrets
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -149,12 +150,21 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     if not os.path.exists(carpeta):
         return {"error": "Esta conexión no tiene datos sincronizados. Ejecuta el agente para sincronizar."}
     schema = detectar_schema_sync(carpeta)
-    sql = generate_sql(consulta.pregunta, schema, "csv")
+    sql = generate_sql(consulta.pregunta, schema, "csv", consulta.modo)
     if sql.strip() == "NO_DATA":
         respuesta = generate_fallback(consulta.pregunta, schema, "Pregunta no relacionada con los datos")
         return {"explicacion": respuesta, "resultados": [], "graficos": None}
     try:
-        resultados = ejecutar_query_sync(sql, carpeta)
+        try:
+            resultados = ejecutar_query_sync(sql, carpeta)
+        except Exception as e_sql:
+            # El SQL fallo (nombre de tabla/columna, sintaxis): un reintento corrigiendolo
+            sql_corregido = corregir_sql(consulta.pregunta, schema, sql, str(e_sql), "csv")
+            if sql_corregido.strip() == "NO_DATA":
+                respuesta = generate_fallback(consulta.pregunta, schema, "Pregunta no relacionada con los datos")
+                return {"explicacion": respuesta, "resultados": [], "graficos": None}
+            sql = sql_corregido
+            resultados = ejecutar_query_sync(sql, carpeta)
 
         if consulta.modo == "rapido":
             db_historial = Historial(
@@ -192,6 +202,41 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     except Exception as e:
         fallback = generate_fallback(consulta.pregunta, schema, str(e))
         return {"error": fallback}
+
+def _validar_conexion(conexion_id, current_user, db):
+    """Valida que la conexion exista, pertenezca al usuario y tenga datos. Devuelve la carpeta."""
+    db_conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
+    if db_conexion is None:
+        raise HTTPException(status_code=404, detail="Conexion no encontrada")
+    if db_conexion.usuario_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+    carpeta = f"data/{current_user.id}/{conexion_id}"
+    if not os.path.exists(carpeta):
+        raise HTTPException(status_code=400, detail="Esta conexión no tiene datos sincronizados.")
+    return carpeta
+
+
+@app.get("/agenda/fechas")
+def agenda_fechas(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    """Rango de fechas con datos, para poblar el selector de la agenda."""
+    carpeta = _validar_conexion(conexion_id, current_user, db)
+    return analisis.fechas_disponibles(carpeta)
+
+
+@app.get("/agenda/dia")
+def agenda_dia(conexion_id: int, fecha: str, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    """Corte determinista de un día (fecha = 'YYYY-MM-DD'). Números exactos por SQL/pandas, no por el modelo."""
+    carpeta = _validar_conexion(conexion_id, current_user, db)
+    resumen = analisis.resumen_dia(carpeta, fecha)
+    return resumen
+
+
+@app.get("/alertas")
+def alertas(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    """Alertas proactivas deterministas: detecta anomalías reales en los últimos 30 días."""
+    carpeta = _validar_conexion(conexion_id, current_user, db)
+    return analisis.generar_alertas(carpeta, dias_ventana=30)
+
 
 @app.post("/sync")
 def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db), archivo: UploadFile = File(...)):

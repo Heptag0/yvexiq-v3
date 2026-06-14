@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" href="/favicon.ico?v=2"><link rel="apple-touch-icon" href="/yvexiq_256.png">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YvexIQ — Agenda</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:#08091a; --sidebar-bg:#0b0c1e; --panel-bg:rgba(255,255,255,0.04);
+      --border:rgba(255,255,255,0.08); --violet:#9333ea; --violet-light:#c084fc;
+      --violet-glow:rgba(147,51,234,0.4); --violet-dim:rgba(147,51,234,0.12);
+      --magenta:#c026d3; --text:#f5f3ff; --text-dim:rgba(245,243,255,0.55);
+      --text-faint:rgba(245,243,255,0.28); --input-bg:rgba(255,255,255,0.05);
+      --sb-w:64px; --sb-w-open:220px; --error:#fb7185; --ok:#4ade80;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; overflow:hidden; }
+
+    /* ===== SIDEBAR (idéntico al dashboard) ===== */
+    .sidebar { width:var(--sb-w); background:var(--sidebar-bg); border-right:1px solid var(--border); display:flex; flex-direction:column; transition:width 0.3s cubic-bezier(0.16,1,0.3,1); overflow:hidden; flex-shrink:0; z-index:100; position:relative; }
+    .sidebar.open { width:var(--sb-w-open); }
+    .sb-top { padding:16px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; min-height:64px; }
+    .sb-logo-icon { width:38px; height:38px; flex-shrink:0; background:linear-gradient(135deg,var(--violet),#6d28d9); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:white; box-shadow:0 0 18px var(--violet-glow); cursor:pointer; }
+    .sb-logo-text { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; background:linear-gradient(135deg,#fff,var(--violet-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; white-space:nowrap; opacity:0; transition:opacity 0.2s; }
+    .sidebar.open .sb-logo-text { opacity:1; }
+    .sb-toggle { position:absolute; right:-12px; top:20px; width:24px; height:24px; background:var(--sidebar-bg); border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:101; transition:transform 0.3s; }
+    .sb-toggle svg { width:12px; height:12px; color:var(--text-faint); transition:transform 0.3s; }
+    .sidebar.open .sb-toggle svg { transform:rotate(180deg); }
+    .sb-nav { flex:1; padding:12px 8px; display:flex; flex-direction:column; gap:4px; overflow-y:auto; overflow-x:hidden; }
+    .sb-item { display:flex; align-items:center; gap:12px; padding:10px; border-radius:10px; cursor:pointer; transition:all 0.2s; white-space:nowrap; overflow:hidden; color:var(--text-faint); font-size:14px; font-weight:500; border:1px solid transparent; text-decoration:none; }
+    .sb-item:hover { background:var(--violet-dim); color:var(--text-dim); }
+    .sb-item.active { background:var(--violet-dim); color:var(--violet-light); border-color:rgba(147,51,234,0.2); }
+    .sb-item svg { width:18px; height:18px; flex-shrink:0; }
+    .sb-item-label { opacity:0; transition:opacity 0.2s; }
+    .sidebar.open .sb-item-label { opacity:1; }
+    .sb-bottom { padding:12px 8px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px; }
+    .sb-user { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; overflow:hidden; white-space:nowrap; }
+    .sb-avatar { width:32px; height:32px; flex-shrink:0; background:linear-gradient(135deg,var(--violet),var(--magenta)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:white; }
+    .sb-user-info { opacity:0; transition:opacity 0.2s; }
+    .sidebar.open .sb-user-info { opacity:1; }
+    .sb-user-email { font-size:12px; color:var(--text-dim); }
+    .sb-user-plan { font-size:10px; color:var(--violet-light); text-transform:uppercase; letter-spacing:0.5px; }
+
+    /* ===== MAIN ===== */
+    .main { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+    .main-aurora { position:absolute; inset:0; pointer-events:none; z-index:0; }
+    .ma { position:absolute; border-radius:50%; filter:blur(90px); mix-blend-mode:screen; }
+    .ma1 { width:500px; height:400px; background:radial-gradient(ellipse,rgba(100,30,200,0.35) 0%,transparent 65%); top:-150px; right:-100px; }
+    .ma2 { width:400px; height:400px; background:radial-gradient(ellipse,rgba(60,40,200,0.25) 0%,transparent 65%); bottom:-100px; left:100px; }
+    .header { position:relative; z-index:10; padding:0 24px; height:64px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); background:rgba(8,9,26,0.7); backdrop-filter:blur(12px); }
+    .header-left { display:flex; align-items:center; gap:16px; }
+    .header-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; }
+    .header-title span { color:var(--violet-light); font-style:italic; }
+    .conn-selector { display:flex; align-items:center; gap:8px; background:var(--violet-dim); border:1px solid rgba(147,51,234,0.25); border-radius:10px; padding:7px 14px; font-size:13px; font-weight:500; color:var(--violet-light); }
+    .conn-dot { width:7px; height:7px; background:var(--ok); border-radius:50%; box-shadow:0 0 6px var(--ok); }
+
+    .content { flex:1; overflow-y:auto; overflow-x:hidden; padding:28px; position:relative; z-index:1; }
+    .content::-webkit-scrollbar { width:4px; }
+    .content::-webkit-scrollbar-thumb { background:rgba(147,51,234,0.3); border-radius:2px; }
+
+    /* ===== BARRA DE FECHA ===== */
+    .date-bar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:26px; }
+    .date-nav-btn { width:40px; height:40px; border-radius:11px; background:var(--panel-bg); border:1px solid var(--border); color:var(--text-dim); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; font-size:18px; }
+    .date-nav-btn:hover:not(:disabled) { background:var(--violet-dim); color:var(--violet-light); border-color:rgba(147,51,234,0.3); }
+    .date-nav-btn:disabled { opacity:0.3; cursor:not-allowed; }
+    .date-picker-wrap { position:relative; flex:1; min-width:240px; max-width:340px; }
+    .date-display { display:flex; align-items:center; gap:12px; background:var(--panel-bg); border:1px solid var(--border); border-radius:13px; padding:12px 18px; cursor:pointer; transition:all 0.2s; }
+    .date-display:hover { border-color:rgba(147,51,234,0.3); }
+    .date-display .cal-icon { font-size:20px; }
+    .date-text { flex:1; }
+    .date-main { font-size:15px; font-weight:600; text-transform:capitalize; }
+    .date-sub { font-size:12px; color:var(--text-faint); }
+    .date-native { position:absolute; inset:0; opacity:0; pointer-events:none; width:100%; }
+    .btn-hoy { padding:11px 20px; border-radius:11px; background:var(--violet-dim); border:1px solid rgba(147,51,234,0.25); color:var(--violet-light); font-family:'DM Sans'; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-hoy:hover { background:rgba(147,51,234,0.2); }
+
+    /* ===== COMENTARIO YVEXIQ ===== */
+    .insight-card { background:linear-gradient(135deg,rgba(147,51,234,0.1),rgba(192,38,211,0.05)); border:1px solid rgba(147,51,234,0.2); border-radius:16px; padding:20px 24px; margin-bottom:24px; display:flex; gap:16px; align-items:flex-start; }
+    .insight-avatar { width:38px; height:38px; flex-shrink:0; background:linear-gradient(135deg,var(--violet),#6d28d9); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-weight:700; color:white; box-shadow:0 0 14px var(--violet-glow); }
+    .insight-body { flex:1; font-size:14px; line-height:1.65; color:var(--text); }
+    .insight-body p { margin-bottom:8px; }
+    .insight-body p:last-child { margin-bottom:0; }
+    .insight-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--violet-light); margin-bottom:6px; font-weight:600; }
+    .insight-loading { color:var(--text-faint); font-style:italic; }
+
+    /* ===== TARJETAS DE METRICAS ===== */
+    .metrics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
+    .metric { background:var(--panel-bg); border:1px solid var(--border); border-radius:16px; padding:22px; position:relative; overflow:hidden; }
+    .metric.hero { grid-column:span 2; background:linear-gradient(135deg,rgba(147,51,234,0.12),var(--panel-bg)); border-color:rgba(147,51,234,0.25); }
+    .metric-label { font-size:12px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+    .metric-value { font-family:'Playfair Display',serif; font-weight:700; line-height:1; }
+    .metric .metric-value { font-size:30px; }
+    .metric.hero .metric-value { font-size:46px; background:linear-gradient(135deg,#fff,var(--violet-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .metric-extra { font-size:13px; color:var(--text-dim); margin-top:8px; }
+    .metric-extra.up { color:var(--ok); }
+
+    /* ===== PANELES DE GRAFICO ===== */
+    .panels { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+    @media (max-width:860px){ .panels { grid-template-columns:1fr; } .metric.hero { grid-column:span 1; } }
+    .panel { background:var(--panel-bg); border:1px solid var(--border); border-radius:16px; padding:22px; }
+    .panel-title { font-size:14px; font-weight:600; color:var(--text-dim); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    #chartHoras { width:100%; height:280px; }
+    .pago-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); }
+    .pago-row:last-child { border-bottom:none; }
+    .pago-name { font-size:14px; color:var(--text); text-transform:capitalize; }
+    .pago-val { font-size:14px; font-weight:600; color:var(--violet-light); }
+
+    /* ===== ESTADOS (vacío / error) ===== */
+    .state-box { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:16px; padding:60px 40px; }
+    .state-icon { width:72px; height:72px; background:var(--violet-dim); border:1px solid rgba(147,51,234,0.25); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:32px; }
+    .state-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; }
+    .state-sub { font-size:14px; color:var(--text-dim); max-width:420px; line-height:1.6; }
+    .btn-primary { padding:13px 26px; border-radius:12px; background:linear-gradient(135deg,var(--violet),var(--magenta)); border:none; color:white; font-family:'DM Sans'; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 16px var(--violet-glow); }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 22px var(--violet-glow); }
+    .hidden { display:none !important; }
+
+    /* ===== MODAL CONTACTO (fallback) ===== */
+    .modal-overlay { position:fixed; inset:0; background:rgba(4,4,12,0.7); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px; }
+    .modal { background:var(--sidebar-bg); border:1px solid var(--border); border-radius:20px; padding:30px; max-width:480px; width:100%; }
+    .modal h3 { font-family:'Playfair Display',serif; font-size:22px; margin-bottom:8px; }
+    .modal p { font-size:14px; color:var(--text-dim); line-height:1.6; margin-bottom:18px; }
+    .modal textarea { width:100%; min-height:90px; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:12px 14px; color:var(--text); font-family:'DM Sans'; font-size:14px; resize:vertical; margin-bottom:14px; }
+    .modal textarea:focus { outline:none; border-color:rgba(147,51,234,0.4); }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+    .btn-ghost { padding:12px 22px; border-radius:11px; background:transparent; border:1px solid var(--border); color:var(--text-dim); font-family:'DM Sans'; font-size:14px; cursor:pointer; }
+    .btn-ghost:hover { background:var(--panel-bg); }
+    .skeleton { background:linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.07),rgba(255,255,255,0.03)); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+    @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+    @media (prefers-reduced-motion:reduce){ .skeleton{animation:none;} }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="sb-top">
+      <img src="/yvexiq_256.png" onclick="toggleSidebar()" style="width:36px;height:36px;border-radius:10px;cursor:pointer;" alt="YvexIQ">
+      <span class="sb-logo-text">YvexIQ</span>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sb-item-label">Consultas</span>
+      </a>
+      <div class="sb-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="sb-item-label">Agenda</span>
+      </div>
+      <a class="sb-item" href="alertas.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span class="sb-item-label">Alertas</span>
+      </a>
+      <a class="sb-item" href="conexiones.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        <span class="sb-item-label">Conexiones</span>
+      </a>
+    </div>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar" id="avatar">U</div>
+        <div class="sb-user-info">
+          <div class="sb-user-email" id="userEmail">...</div>
+          <div class="sb-user-plan" id="userPlan">—</div>
+        </div>
+      </div>
+      <div class="sb-item" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="sb-item-label">Cerrar sesión</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-aurora"><div class="ma ma1"></div><div class="ma ma2"></div></div>
+
+    <div class="header">
+      <div class="header-left">
+        <div class="header-title">Agenda <span>· corte del día</span></div>
+      </div>
+      <div class="conn-selector">
+        <div class="conn-dot"></div>
+        <span id="connName">Conexión</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Barra de fecha -->
+      <div class="date-bar" id="dateBar">
+        <button class="date-nav-btn" id="prevDay" onclick="cambiarDia(-1)">‹</button>
+        <div class="date-picker-wrap">
+          <div class="date-display" onclick="abrirCalendario()">
+            <span class="cal-icon">📅</span>
+            <div class="date-text">
+              <div class="date-main" id="dateMain">—</div>
+              <div class="date-sub" id="dateSub">Selecciona un día</div>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--text-faint);flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <input type="date" class="date-native" id="dateNative" onchange="onFechaManual(this.value)">
+        </div>
+        <button class="date-nav-btn" id="nextDay" onclick="cambiarDia(1)">›</button>
+        <button class="btn-hoy" onclick="irAlUltimoDia()">Último día</button>
+      </div>
+
+      <!-- Zona de resultados -->
+      <div id="resultZone">
+        <!-- Comentario YvexIQ -->
+        <div class="insight-card" id="insightCard">
+          <div class="insight-avatar">Y</div>
+          <div class="insight-body">
+            <div class="insight-label">YvexIQ analiza tu día</div>
+            <div id="insightText" class="insight-loading">Preparando el corte…</div>
+          </div>
+        </div>
+
+        <!-- Métricas -->
+        <div class="metrics-grid" id="metricsGrid"></div>
+
+        <!-- Paneles -->
+        <div class="panels">
+          <div class="panel">
+            <div class="panel-title">📈 Ventas por hora</div>
+            <div id="chartHoras"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">💳 Por forma de pago</div>
+            <div id="pagosList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado: día sin ventas -->
+      <div id="emptyDay" class="state-box hidden">
+        <div class="state-icon">🌙</div>
+        <div class="state-title">Sin ventas registradas</div>
+        <div class="state-sub" id="emptyDaySub">No hay tickets para este día. Prueba con otra fecha o revisa que el agente haya sincronizado este periodo.</div>
+      </div>
+
+      <!-- Estado: error de detección (fallback de contacto) -->
+      <div id="errorState" class="state-box hidden">
+        <div class="state-icon">🔍</div>
+        <div class="state-title">No pude leer tus ventas</div>
+        <div class="state-sub">No reconocí la estructura de tus datos para armar el corte del día. Esto suele pasar con sistemas que nombran sus columnas de forma distinta. Avísame y lo ajusto para tu negocio — normalmente se resuelve rápido.</div>
+        <button class="btn-primary" onclick="abrirContacto()">Avisar y solucionarlo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONTACTO -->
+  <div id="contactoModal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Cuéntame qué pasó</h3>
+      <p>Tu mensaje me llega directamente con algo de información técnica de tu conexión, para identificar y arreglar el problema rápido. No se incluye ningún dato de tus ventas.</p>
+      <textarea id="contactoMsg" placeholder="Opcional: cuéntame qué sistema usas (Eleventa, otro POS, Excel…) o cualquier detalle que ayude."></textarea>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="cerrarContacto()">Cancelar</button>
+        <button class="btn-primary" id="enviarContactoBtn" onclick="enviarContacto()">Enviar aviso</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API = 'https://yvexiq.com/api';
+  if (!localStorage.getItem('yvex_token')) window.location.href = 'login.html';
+
+  let connId = parseInt(localStorage.getItem('yvex_conn_id')) || null;
+  let diasDisponibles = [];
+  let fechaActual = null;
+  let chart = null;
+  let ultimoError = null;
+  let usuarioEmail = '';
+
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+  function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+
+  function abrirCalendario(){
+    const input = document.getElementById('dateNative');
+    try {
+      if(typeof input.showPicker === 'function'){ input.showPicker(); }
+      else { input.focus(); input.click(); }
+    } catch(e) { input.focus(); input.click(); }
+  }
+
+  async function refreshAccessToken(){
+    try{
+      const res = await fetch(API + '/refresh', { method:'POST', credentials:'include' });
+      if(!res.ok) return null;
+      const data = await res.json();
+      localStorage.setItem('yvex_token', data.access_token);
+      return data.access_token;
+    }catch{ return null; }
+  }
+  async function fetchConAuth(url, options={}, _retry=true){
+    let token = localStorage.getItem('yvex_token');
+    options.headers = { ...options.headers, 'Authorization':'Bearer '+token };
+    options.credentials = 'include';
+    let res = await fetch(url, options);
+    if(res.status===401 && _retry){
+      const nt = await refreshAccessToken();
+      if(!nt) return res;
+      options.headers['Authorization'] = 'Bearer '+nt;
+      res = await fetch(url, options);
+    }
+    return res;
+  }
+  async function logout(){
+    try{ await fetchConAuth(API+'/logout',{method:'POST'}); }catch{}
+    localStorage.removeItem('yvex_token'); localStorage.removeItem('yvex_conn_id'); localStorage.removeItem('yvex_conn_name');
+    window.location.href='login.html';
+  }
+
+  function fmtMoneda(n){
+    if(n===null||n===undefined) return '—';
+    return '$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});
+  }
+  function fmtFechaLarga(iso){
+    const [y,m,d] = iso.split('-').map(Number);
+    const fecha = new Date(y,m-1,d);
+    return { main: `${d} de ${MESES[m-1]}`, sub: DIAS[fecha.getDay()].charAt(0).toUpperCase()+DIAS[fecha.getDay()].slice(1)+', '+y };
+  }
+  function traducirPago(codigo){
+    const c = String(codigo).trim().toLowerCase();
+    const mapa = { 'e':'Efectivo','efectivo':'Efectivo','t':'Tarjeta','tarjeta':'Tarjeta','c':'Crédito','credito':'Crédito','crédito':'Crédito','transferencia':'Transferencia','tr':'Transferencia' };
+    return mapa[c] || (codigo ? String(codigo).trim() : 'Otro');
+  }
+
+  // ===== INIT =====
+  async function init(){
+    // Cargar conexión y usuario
+    try{
+      const res = await fetchConAuth(API+'/conexiones');
+      const conexiones = await res.json();
+      if(!Array.isArray(conexiones) || conexiones.length===0){
+        document.getElementById('connName').textContent = 'Sin conexión';
+        mostrarError('Sin conexiones'); return;
+      }
+      if(!connId || !conexiones.find(c=>c.id===connId)){
+        connId = conexiones[0].id;
+        localStorage.setItem('yvex_conn_id', connId);
+        localStorage.setItem('yvex_conn_name', conexiones[0].nombre);
+      }
+      const activa = conexiones.find(c=>c.id===connId) || conexiones[0];
+      document.getElementById('connName').textContent = activa.nombre;
+    }catch{ mostrarError('No se pudieron cargar las conexiones'); return; }
+
+    // Usuario (avatar/email/plan)
+    try{
+      const r = await fetchConAuth(API+'/me');
+      const u = await r.json();
+      if(u.email){ usuarioEmail = u.email; document.getElementById('userEmail').textContent = u.email; document.getElementById('avatar').textContent = u.email.charAt(0).toUpperCase(); }
+      if(u.tipo_suscripcion) document.getElementById('userPlan').textContent = u.tipo_suscripcion;
+    }catch{}
+
+    // Cargar fechas disponibles
+    try{
+      const res = await fetchConAuth(API+`/agenda/fechas?conexion_id=${connId}`);
+      const data = await res.json();
+      if(data.error || !data.dias || data.dias.length===0){ mostrarError(data.error||'sin_fechas'); return; }
+      diasDisponibles = data.dias;
+      document.getElementById('dateNative').min = data.min;
+      document.getElementById('dateNative').max = data.max;
+      irAlUltimoDia();
+    }catch(e){ mostrarError('No se pudieron cargar las fechas'); }
+  }
+
+  function irAlUltimoDia(){ if(diasDisponibles.length){ cargarDia(diasDisponibles[diasDisponibles.length-1]); } }
+
+  function cambiarDia(delta){
+    const idx = diasDisponibles.indexOf(fechaActual);
+    if(idx===-1) return;
+    const nuevo = idx+delta;
+    if(nuevo<0 || nuevo>=diasDisponibles.length) return;
+    cargarDia(diasDisponibles[nuevo]);
+  }
+  function onFechaManual(valor){
+    if(diasDisponibles.includes(valor)){ cargarDia(valor); }
+    else { // buscar el día disponible más cercano hacia atrás
+      const previos = diasDisponibles.filter(d=>d<=valor);
+      if(previos.length) cargarDia(previos[previos.length-1]);
+      else cargarDia(diasDisponibles[0]);
+    }
+  }
+
+  function actualizarBarraFecha(){
+    const f = fmtFechaLarga(fechaActual);
+    document.getElementById('dateMain').textContent = f.main;
+    document.getElementById('dateSub').textContent = f.sub;
+    document.getElementById('dateNative').value = fechaActual;
+    const idx = diasDisponibles.indexOf(fechaActual);
+    document.getElementById('prevDay').disabled = idx<=0;
+    document.getElementById('nextDay').disabled = idx>=diasDisponibles.length-1;
+  }
+
+  async function cargarDia(fecha){
+    fechaActual = fecha;
+    actualizarBarraFecha();
+    // mostrar zona de resultados, ocultar estados
+    document.getElementById('resultZone').classList.remove('hidden');
+    document.getElementById('emptyDay').classList.add('hidden');
+    document.getElementById('errorState').classList.add('hidden');
+    // skeleton métricas
+    document.getElementById('metricsGrid').innerHTML = ['hero','','','',''].map(h=>`<div class="metric ${h}"><div class="metric-label skeleton" style="height:12px;width:60%;">&nbsp;</div><div class="metric-value skeleton" style="height:32px;width:80%;margin-top:10px;">&nbsp;</div></div>`).join('');
+    document.getElementById('insightText').textContent = 'Analizando el día…';
+    document.getElementById('insightText').className = 'insight-loading';
+
+    try{
+      const res = await fetchConAuth(API+`/agenda/dia?conexion_id=${connId}&fecha=${fecha}`);
+      const d = await res.json();
+      if(d.error){ mostrarError(d.error); return; }
+      if(d.sin_datos){ mostrarDiaVacio(); return; }
+      pintarDia(d);
+    }catch(e){ mostrarError('fallo_red'); }
+  }
+
+  function pintarDia(d){
+    // Métricas
+    const margenTxt = d.margen_pct!==null ? `Margen ${d.margen_pct}%` : '';
+    const ganTxt = d.ganancia!==null ? fmtMoneda(d.ganancia) : '—';
+    document.getElementById('metricsGrid').innerHTML = `
+      <div class="metric hero">
+        <div class="metric-label">Venta total del día</div>
+        <div class="metric-value">${fmtMoneda(d.total)}</div>
+        <div class="metric-extra">${d.tickets} ${d.tickets===1?'ticket':'tickets'} · promedio ${fmtMoneda(d.ticket_promedio)}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Ganancia</div>
+        <div class="metric-value">${ganTxt}</div>
+        <div class="metric-extra">${margenTxt}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Tickets</div>
+        <div class="metric-value">${d.tickets}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Ticket promedio</div>
+        <div class="metric-value">${fmtMoneda(d.ticket_promedio)}</div>
+      </div>`;
+
+    // Gráfico por hora
+    pintarChart(d.por_hora);
+
+    // Formas de pago
+    const pagos = (d.por_pago||[]).sort((a,b)=>b.total-a.total);
+    document.getElementById('pagosList').innerHTML = pagos.length
+      ? pagos.map(p=>`<div class="pago-row"><span class="pago-name">${traducirPago(p.forma)}</span><span class="pago-val">${fmtMoneda(p.total)}</span></div>`).join('')
+      : `<div style="color:var(--text-faint);font-size:13px;">Sin desglose disponible</div>`;
+
+    // Comentario de YvexIQ (interpretación honesta, calculada en cliente con los números exactos)
+    generarComentario(d);
+  }
+
+  function pintarChart(porHora){
+    if(chart) chart.dispose();
+    chart = echarts.init(document.getElementById('chartHoras'));
+    const horas = []; const valores = [];
+    for(let h=0; h<24; h++){
+      const item = porHora.find(x=>x.hora===h);
+      if(item || (h>=6 && h<=23)){ horas.push(h+':00'); valores.push(item?item.total:0); }
+    }
+    chart.setOption({
+      grid:{ left:8, right:14, top:18, bottom:24, containLabel:true },
+      tooltip:{ trigger:'axis', backgroundColor:'rgba(11,12,30,0.95)', borderColor:'rgba(147,51,234,0.3)', textStyle:{color:'#f5f3ff'}, formatter:p=>`${p[0].name}<br/><b>$${Number(p[0].value).toLocaleString('es-MX')}</b>` },
+      xAxis:{ type:'category', data:horas, axisLine:{lineStyle:{color:'rgba(255,255,255,0.1)'}}, axisLabel:{color:'rgba(245,243,255,0.4)',fontSize:10,interval:1} },
+      yAxis:{ type:'value', axisLabel:{color:'rgba(245,243,255,0.4)',fontSize:10,formatter:v=>'$'+v}, splitLine:{lineStyle:{color:'rgba(255,255,255,0.05)'}} },
+      series:[{ type:'bar', data:valores, itemStyle:{ borderRadius:[4,4,0,0], color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#c026d3'},{offset:1,color:'#7c22d4'}]) }, barWidth:'60%' }]
+    });
+  }
+
+  // Comentario basado en los números EXACTOS (no inventa: deriva del corte ya calculado)
+  function generarComentario(d){
+    const el = document.getElementById('insightText');
+    el.className = 'insight-body';
+    let partes = [];
+    // pico de hora
+    let pico = null;
+    (d.por_hora||[]).forEach(h=>{ if(!pico || h.total>pico.total) pico=h; });
+    const f = fmtFechaLarga(d.fecha);
+
+    let p1 = `El ${f.main} vendiste <b>${fmtMoneda(d.total)}</b> en ${d.tickets} ${d.tickets===1?'ticket':'tickets'}, con un ticket promedio de ${fmtMoneda(d.ticket_promedio)}.`;
+    if(d.margen_pct!==null) p1 += ` Tu ganancia fue de ${fmtMoneda(d.ganancia)} (margen del ${d.margen_pct}%).`;
+    partes.push(p1);
+
+    if(pico && pico.total>0){
+      partes.push(`Tu mejor hora fue alrededor de las <b>${pico.hora}:00</b>, cuando entraron ${fmtMoneda(pico.total)}. Si ese patrón se repite, es la franja donde más conviene tener personal y producto listo.`);
+    }
+    el.innerHTML = partes.map(p=>`<p>${p}</p>`).join('');
+  }
+
+  function mostrarDiaVacio(){
+    document.getElementById('resultZone').classList.add('hidden');
+    document.getElementById('errorState').classList.add('hidden');
+    document.getElementById('emptyDay').classList.remove('hidden');
+  }
+  function mostrarError(err){
+    ultimoError = err;
+    document.getElementById('resultZone').classList.add('hidden');
+    document.getElementById('emptyDay').classList.add('hidden');
+    document.getElementById('errorState').classList.remove('hidden');
+    if(err==='sin_fechas' || err==='no_ventas'){ document.getElementById('dateBar').classList.add('hidden'); }
+  }
+
+  // ===== CONTACTO (fallback) =====
+  function abrirContacto(){ document.getElementById('contactoModal').classList.remove('hidden'); }
+  function cerrarContacto(){ document.getElementById('contactoModal').classList.add('hidden'); }
+  async function enviarContacto(){
+    const btn = document.getElementById('enviarContactoBtn');
+    const msg = document.getElementById('contactoMsg').value.trim();
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    // Info técnica (sin datos de ventas): solo el error y la conexión, para diagnosticar
+    const cuerpo = `Aviso desde Agenda — fallo de detección.\nError: ${ultimoError||'desconocido'}\nConexión ID: ${connId}\nFecha intentada: ${fechaActual||'—'}\n\nMensaje del usuario:\n${msg||'(sin mensaje)'}`;
+    try{
+      const res = await fetchConAuth(API+'/contacto', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          nombre: usuarioEmail ? usuarioEmail.split('@')[0] : 'Usuario Agenda',
+          email: usuarioEmail || 'sin-email@yvexiq.com',
+          asunto:'[Agenda] Fallo de detección de datos',
+          plan:'',
+          mensaje: cuerpo
+        })
+      });
+      if(res.ok){ btn.textContent='✓ Enviado'; setTimeout(cerrarContacto, 1200); }
+      else { btn.textContent='Enviar aviso'; btn.disabled=false; alert('No se pudo enviar. Intenta de nuevo o escribe a contacto@yvexiq.com'); }
+    }catch{ btn.textContent='Enviar aviso'; btn.disabled=false; alert('No se pudo enviar. Revisa tu conexión.'); }
+  }
+
+  window.addEventListener('resize', ()=>{ if(chart) chart.resize(); });
+  init();
+</script>
+</body>
+</html>
