@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from limits import verificar_limite_consultas, verificar_limite_conexiones
 import analisis
 import secrets
+import seguridad
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -62,15 +63,22 @@ except Exception as e:
 
 
 @app.post("/register")
-def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(Usuario).filter(Usuario.email == user.email).first()
+def register_user(user: UsuarioCreate, request: Request, db: Session = Depends(get_db)):
+    ip = seguridad.obtener_ip(request)
+    # Anti-registro masivo: máx 5 registros por IP en 1 hora
+    seguridad.verificar_rate_limit(f"register_ip:{ip}", 5, 3600, "Se han creado demasiadas cuentas desde esta red. Inténtalo más tarde.")
+    # Validar formato de email y fuerza de contraseña
+    email_limpio = seguridad.validar_email(user.email)
+    seguridad.validar_password(user.password)
+
+    existing_user = db.query(Usuario).filter(Usuario.email == email_limpio).first()
     if existing_user is not None:
         raise HTTPException(status_code=400, detail="El correo ya esta registrado")
-    user.password = auth.hash_password(user.password)
+    password_hash = auth.hash_password(user.password)
     token = secrets.token_hex(32)
     db_user = Usuario(
-        email=user.email,
-        password=user.password,
+        email=email_limpio,
+        password=password_hash,
         tipo_suscripcion="gratuito",
         suscripcion_activa=True,
         fecha_registro=datetime.now(),
@@ -81,7 +89,7 @@ def register_user(user: UsuarioCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     from email_service import enviar_email_verificacion
-    enviar_email_verificacion(user.email, token)
+    enviar_email_verificacion(email_limpio, token)
     return {"message": "Usuario registrado exitosamente"}
 
 @app.get("/verificar-email")
@@ -101,6 +109,8 @@ def verificar_email(token: str, db: Session = Depends(get_db)):
 def reenviar_verificacion(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
     if current_user.email_verificado:
         raise HTTPException(status_code=400, detail="Email ya verificado")
+    # Máx 3 reenvíos por cuenta cada 15 min, para no quemar la cuota de email
+    seguridad.verificar_rate_limit(f"reenvio:{current_user.email}", 3, 900, "Has pedido el correo de verificación varias veces. Espera unos minutos y revisa tu bandeja (y spam).")
     token = secrets.token_hex(32)
     current_user.token_verificacion = token
     current_user.fecha_token_verificacion = datetime.now()
@@ -110,13 +120,24 @@ def reenviar_verificacion(current_user: Usuario = Depends(auth.get_current_user)
     return {"message": "Email de verificacion reenviado"}
 
 @app.post("/login")
-def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login_user(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    ip = seguridad.obtener_ip(request)
+    # Rate limit por IP: máx 10 intentos en 5 min (frena fuerza bruta distribuida por una IP)
+    seguridad.verificar_rate_limit(f"login_ip:{ip}", 10, 300, "Demasiados intentos de inicio de sesión. Espera unos minutos e inténtalo de nuevo.")
+    # Rate limit por email: máx 5 intentos en 5 min (frena ataque dirigido a una cuenta)
+    email_norm = (form_data.username or "").strip().lower()
+    seguridad.verificar_rate_limit(f"login_email:{email_norm}", 5, 300, "Demasiados intentos para esta cuenta. Espera unos minutos e inténtalo de nuevo.")
+
     db_user = db.query(Usuario).filter(Usuario.email == form_data.username).first()
     if db_user is None:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     if not auth.verify_password(form_data.password, db_user.password):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
-    
+
+    # Login correcto: limpiar contadores de rate limit de esta cuenta/IP
+    seguridad.registrar_exito(f"login_email:{email_norm}")
+    seguridad.registrar_exito(f"login_ip:{ip}")
+
     access_token = auth.create_access_token(data={"sub": form_data.username})
     refresh_token = auth.create_refresh_token(data={"sub": form_data.username})
     
@@ -143,12 +164,12 @@ def consultar(consulta: Consulta, current_user: Usuario = Depends(auth.get_curre
     conexion_id = consulta.conexion_id
     db_conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
     if db_conexion is None:
-        raise HTTPException(status_code=404, detail="Conexion no encontrada")
+        raise HTTPException(status_code=404, detail={"codigo": "conexion_no_encontrada", "mensaje": "Conexión no encontrada"})
     if db_conexion.usuario_id != current_user.id:
-        raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+        raise HTTPException(status_code=403, detail={"codigo": "sin_permiso", "mensaje": "No tienes permiso para acceder a esta conexión"})
     carpeta = f"data/{current_user.id}/{conexion_id}"
     if not os.path.exists(carpeta):
-        return {"error": "Esta conexión no tiene datos sincronizados. Ejecuta el agente para sincronizar."}
+        return {"error": "Esta conexión no tiene datos sincronizados. Ejecuta el agente para sincronizar.", "codigo": "sin_datos"}
     schema = detectar_schema_sync(carpeta)
     sql = generate_sql(consulta.pregunta, schema, "csv", consulta.modo)
     if sql.strip() == "NO_DATA":
@@ -207,12 +228,12 @@ def _validar_conexion(conexion_id, current_user, db):
     """Valida que la conexion exista, pertenezca al usuario y tenga datos. Devuelve la carpeta."""
     db_conexion = db.query(Conexion).filter(Conexion.id == conexion_id).first()
     if db_conexion is None:
-        raise HTTPException(status_code=404, detail="Conexion no encontrada")
+        raise HTTPException(status_code=404, detail={"codigo": "conexion_no_encontrada", "mensaje": "Conexión no encontrada"})
     if db_conexion.usuario_id != current_user.id:
-        raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta conexion")
+        raise HTTPException(status_code=403, detail={"codigo": "sin_permiso", "mensaje": "No tienes permiso para acceder a esta conexión"})
     carpeta = f"data/{current_user.id}/{conexion_id}"
     if not os.path.exists(carpeta):
-        raise HTTPException(status_code=400, detail="Esta conexión no tiene datos sincronizados.")
+        raise HTTPException(status_code=400, detail={"codigo": "sin_datos", "mensaje": "Esta conexión no tiene datos sincronizados."})
     return carpeta
 
 
@@ -241,7 +262,12 @@ def alertas(conexion_id: int, current_user: Usuario = Depends(auth.get_current_u
 @app.post("/sync")
 def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db), archivo: UploadFile = File(...)):
     EXTENSIONES_PERMITIDAS = {".csv", ".xlsx", ".xls", ".fdb"}
-    extension = os.path.splitext(archivo.filename)[1].lower()
+    # Sanear el nombre: usar SOLO el nombre base, sin rutas, para evitar path traversal (../../)
+    nombre_seguro = os.path.basename(archivo.filename or "")
+    nombre_seguro = nombre_seguro.replace("\\", "").replace("/", "").strip()
+    if not nombre_seguro:
+        raise HTTPException(status_code=400, detail="Nombre de archivo inválido.")
+    extension = os.path.splitext(nombre_seguro)[1].lower()
     if extension not in EXTENSIONES_PERMITIDAS:
         raise HTTPException(status_code=400, detail="Tipo de archivo no permitido. Solo CSV, Excel y Firebird.")
 
@@ -254,7 +280,10 @@ def sincronizar(conexion_id: int, current_user: Usuario = Depends(auth.get_curre
     contenido = archivo.file.read()
     carpeta = f"data/{current_user.id}/{conexion_id}"
     os.makedirs(carpeta, exist_ok=True)
-    ruta_destino = os.path.join(carpeta, archivo.filename)
+    ruta_destino = os.path.join(carpeta, nombre_seguro)
+    # Verificación extra: la ruta final debe quedar DENTRO de la carpeta del usuario
+    if not os.path.abspath(ruta_destino).startswith(os.path.abspath(carpeta) + os.sep):
+        raise HTTPException(status_code=400, detail="Ruta de archivo inválida.")
     with open(ruta_destino, "wb") as f:
         f.write(contenido)
 
@@ -438,7 +467,10 @@ def admin_metricas(db: Session = Depends(get_db), admin: Usuario = Depends(verif
     }
 
 @app.post("/contacto")
-def formulario_contacto(data: dict):
+def formulario_contacto(data: dict, request: Request):
+    ip = seguridad.obtener_ip(request)
+    # Máx 5 mensajes de contacto por IP cada 30 min, anti-spam
+    seguridad.verificar_rate_limit(f"contacto:{ip}", 5, 1800, "Has enviado varios mensajes. Espera unos minutos antes de enviar otro.")
     nombre = data.get("nombre", "").strip()
     email = data.get("email", "").strip()
     asunto = data.get("asunto", "").strip()

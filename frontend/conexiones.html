@@ -396,7 +396,7 @@
         <div class="sb-avatar" id="sb-avatar">U</div>
         <div class="sb-user-info">
           <div class="sb-user-email" id="sb-email">usuario@negocio.com</div>
-          <div class="sb-user-plan">Plan Básico</div>
+          <div class="sb-user-plan" id="sb-plan">Plan —</div>
         </div>
       </div>
       <a class="sb-item" onclick="logout()">
@@ -774,6 +774,24 @@
         }
     }
 
+    async function cargarUsuario() {
+        try {
+            const res = await fetchConAuth(API + '/me');
+            if (!res || !res.ok) return;
+            const data = await res.json();
+            const planTextos = { 'gratuito':'Plan Gratuito', 'basico':'Plan Básico', 'pro':'Plan Pro', 'enterprise':'Plan Enterprise' };
+            const planEl = document.getElementById('sb-plan');
+            if (planEl) planEl.textContent = planTextos[data.plan] || ('Plan ' + (data.plan||''));
+            if (data.email) {
+                const emailEl = document.getElementById('sb-email');
+                const avatarEl = document.getElementById('sb-avatar');
+                if (emailEl) emailEl.textContent = data.email;
+                if (avatarEl) avatarEl.textContent = data.email.charAt(0).toUpperCase();
+            }
+        } catch {}
+    }
+
+    cargarUsuario();
     cargarConexiones();
   </script>  <input type="file" id="reupload-input" style="display:none" onchange="onReuploadSeleccionado(this)"/>
 

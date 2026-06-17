@@ -50,8 +50,12 @@ def verificar_limite_consultas(usuario, db: Session):
     if consultas_hoy >= limite:
         raise HTTPException(
             status_code=429,
-            detail=f"Límite diario alcanzado ({limite} consultas/día en plan {plan}). "
-                   f"Actualiza tu plan para continuar."
+            detail={
+                "codigo": "limite_consultas",
+                "mensaje": f"Límite diario alcanzado ({limite} consultas/día en plan {plan}). Actualiza tu plan para continuar.",
+                "limite": limite,
+                "plan": plan
+            }
         )
 
 def verificar_limite_conexiones(usuario, db: Session):
@@ -68,6 +72,10 @@ def verificar_limite_conexiones(usuario, db: Session):
     if conexiones_actuales >= limite:
         raise HTTPException(
             status_code=403,
-            detail=f"Límite de conexiones alcanzado ({limite} en plan {plan}). "
-                   f"Actualiza tu plan para agregar más."
+            detail={
+                "codigo": "limite_conexiones",
+                "mensaje": f"Límite de conexiones alcanzado ({limite} en plan {plan}). Actualiza tu plan para agregar más.",
+                "limite": limite,
+                "plan": plan
+            }
         )

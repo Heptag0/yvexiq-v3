@@ -185,9 +185,13 @@
       <div class="header-left">
         <div class="header-title">Agenda <span>· corte del día</span></div>
       </div>
-      <div class="conn-selector">
-        <div class="conn-dot"></div>
-        <span id="connName">Conexión</span>
+      <div class="header-right" style="display:flex;align-items:center;gap:12px;position:relative;">
+        <div class="conn-selector" onclick="toggleConnDropdown()" style="cursor:pointer;">
+          <div class="conn-dot"></div>
+          <span id="connName">Conexión</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="connDropdown" style="display:none; position:absolute; top:46px; right:0; background:#0f1030; border:1px solid rgba(147,51,234,0.25); border-radius:14px; padding:8px; min-width:240px; box-shadow:0 8px 32px rgba(0,0,10,0.6); z-index:200;"></div>
       </div>
     </div>
 
@@ -272,6 +276,7 @@
   if (!localStorage.getItem('yvex_token')) window.location.href = 'login.html';
 
   let connId = parseInt(localStorage.getItem('yvex_conn_id')) || null;
+  let listaConexiones = [];
   let diasDisponibles = [];
   let fechaActual = null;
   let chart = null;
@@ -289,6 +294,60 @@
       if(typeof input.showPicker === 'function'){ input.showPicker(); }
       else { input.focus(); input.click(); }
     } catch(e) { input.focus(); input.click(); }
+  }
+
+  // ===== SELECTOR DE CONEXIÓN =====
+  function renderConnDropdown(){
+    const dd = document.getElementById('connDropdown');
+    dd.innerHTML = '';
+    listaConexiones.forEach(c=>{
+      const item = document.createElement('div');
+      const activo = c.id===connId;
+      item.style.cssText = 'padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;color:'+(activo?'#c084fc':'rgba(245,243,255,0.55)')+';background:'+(activo?'rgba(147,51,234,0.15)':'transparent');
+      item.textContent = c.nombre;
+      item.onmouseenter = ()=>{ if(!activo) item.style.background='rgba(255,255,255,0.04)'; };
+      item.onmouseleave = ()=>{ if(!activo) item.style.background='transparent'; };
+      item.onclick = ()=> seleccionarConexion(c);
+      dd.appendChild(item);
+    });
+  }
+  function toggleConnDropdown(){
+    const dd = document.getElementById('connDropdown');
+    dd.style.display = dd.style.display==='none' ? 'block' : 'none';
+  }
+  function seleccionarConexion(c){
+    if(c.id===connId){ toggleConnDropdown(); return; }
+    connId = c.id;
+    localStorage.setItem('yvex_conn_id', c.id);
+    localStorage.setItem('yvex_conn_name', c.nombre);
+    document.getElementById('connName').textContent = c.nombre;
+    renderConnDropdown();
+    toggleConnDropdown();
+    // Recargar fechas y corte con la nueva conexión
+    recargarPorConexion();
+  }
+  document.addEventListener('click', e=>{
+    const dd = document.getElementById('connDropdown');
+    const sel = document.querySelector('.conn-selector');
+    if(dd && sel && !dd.contains(e.target) && !sel.contains(e.target)){ dd.style.display='none'; }
+  });
+
+  async function recargarPorConexion(){
+    // reset de estados
+    document.getElementById('errorState').classList.add('hidden');
+    document.getElementById('emptyDay').classList.add('hidden');
+    document.getElementById('resultZone').classList.remove('hidden');
+    document.getElementById('dateBar').classList.remove('hidden');
+    diasDisponibles = [];
+    try{
+      const res = await fetchConAuth(API+`/agenda/fechas?conexion_id=${connId}`);
+      const data = await res.json();
+      if(data.error || !data.dias || data.dias.length===0){ mostrarError(data.error||'sin_fechas'); return; }
+      diasDisponibles = data.dias;
+      document.getElementById('dateNative').min = data.min;
+      document.getElementById('dateNative').max = data.max;
+      irAlUltimoDia();
+    }catch{ mostrarError('No se pudieron cargar las fechas'); }
   }
 
   async function refreshAccessToken(){
@@ -344,6 +403,7 @@
         document.getElementById('connName').textContent = 'Sin conexión';
         mostrarError('Sin conexiones'); return;
       }
+      listaConexiones = conexiones;
       if(!connId || !conexiones.find(c=>c.id===connId)){
         connId = conexiones[0].id;
         localStorage.setItem('yvex_conn_id', connId);
@@ -351,6 +411,7 @@
       }
       const activa = conexiones.find(c=>c.id===connId) || conexiones[0];
       document.getElementById('connName').textContent = activa.nombre;
+      renderConnDropdown();
     }catch{ mostrarError('No se pudieron cargar las conexiones'); return; }
 
     // Usuario (avatar/email/plan)
@@ -358,7 +419,8 @@
       const r = await fetchConAuth(API+'/me');
       const u = await r.json();
       if(u.email){ usuarioEmail = u.email; document.getElementById('userEmail').textContent = u.email; document.getElementById('avatar').textContent = u.email.charAt(0).toUpperCase(); }
-      if(u.tipo_suscripcion) document.getElementById('userPlan').textContent = u.tipo_suscripcion;
+      const planTextos={'gratuito':'Plan Gratuito','basico':'Plan Básico','pro':'Plan Pro','enterprise':'Plan Enterprise'};
+      if(u.plan) document.getElementById('userPlan').textContent = planTextos[u.plan]||('Plan '+u.plan);
     }catch{}
 
     // Cargar fechas disponibles
@@ -416,6 +478,7 @@
     try{
       const res = await fetchConAuth(API+`/agenda/dia?conexion_id=${connId}&fecha=${fecha}`);
       const d = await res.json();
+      if(!res.ok){ const cod = (d.detail && typeof d.detail==='object') ? d.detail.codigo : (d.detail||'error'); mostrarError(cod); return; }
       if(d.error){ mostrarError(d.error); return; }
       if(d.sin_datos){ mostrarDiaVacio(); return; }
       pintarDia(d);

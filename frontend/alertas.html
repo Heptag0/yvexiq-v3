@@ -139,7 +139,14 @@
     <div class="main-aurora"><div class="ma ma1"></div><div class="ma ma2"></div></div>
     <div class="header">
       <div class="header-title">Alertas <span>· lo que conviene mirar</span></div>
-      <div class="conn-selector"><div class="conn-dot"></div><span id="connName">Conexión</span></div>
+      <div class="header-right" style="display:flex;align-items:center;gap:12px;position:relative;">
+        <div class="conn-selector" onclick="toggleConnDropdown()" style="cursor:pointer;">
+          <div class="conn-dot"></div>
+          <span id="connName">Conexión</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="connDropdown" style="display:none; position:absolute; top:46px; right:0; background:#0f1030; border:1px solid rgba(147,51,234,0.25); border-radius:14px; padding:8px; min-width:240px; box-shadow:0 8px 32px rgba(0,0,10,0.6); z-index:200;"></div>
+      </div>
     </div>
 
     <div class="content">
@@ -202,11 +209,55 @@
   const API = 'https://yvexiq.com/api';
   if (!localStorage.getItem('yvex_token')) window.location.href = 'login.html';
   let connId = parseInt(localStorage.getItem('yvex_conn_id')) || null;
+  let listaConexiones = [];
   let usuarioEmail = '';
   let ultimoError = null;
 
   const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+
+  // ===== SELECTOR DE CONEXIÓN =====
+  function renderConnDropdown(){
+    const dd = document.getElementById('connDropdown');
+    dd.innerHTML = '';
+    listaConexiones.forEach(c=>{
+      const item = document.createElement('div');
+      const activo = c.id===connId;
+      item.style.cssText = 'padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;color:'+(activo?'#c084fc':'rgba(245,243,255,0.55)')+';background:'+(activo?'rgba(147,51,234,0.15)':'transparent');
+      item.textContent = c.nombre;
+      item.onmouseenter = ()=>{ if(!activo) item.style.background='rgba(255,255,255,0.04)'; };
+      item.onmouseleave = ()=>{ if(!activo) item.style.background='transparent'; };
+      item.onclick = ()=> seleccionarConexion(c);
+      dd.appendChild(item);
+    });
+  }
+  function toggleConnDropdown(){
+    const dd = document.getElementById('connDropdown');
+    dd.style.display = dd.style.display==='none' ? 'block' : 'none';
+  }
+  function seleccionarConexion(c){
+    if(c.id===connId){ toggleConnDropdown(); return; }
+    connId = c.id;
+    localStorage.setItem('yvex_conn_id', c.id);
+    localStorage.setItem('yvex_conn_name', c.nombre);
+    document.getElementById('connName').textContent = c.nombre;
+    renderConnDropdown();
+    toggleConnDropdown();
+    // Recargar alertas con la nueva conexión
+    document.getElementById('alertList').innerHTML = '';
+    document.getElementById('enCurso').classList.add('hidden');
+    document.getElementById('calmState').classList.add('hidden');
+    document.getElementById('fewState').classList.add('hidden');
+    document.getElementById('errorState').classList.add('hidden');
+    document.getElementById('skeleton').classList.remove('hidden');
+    document.getElementById('periodoTag').textContent = '📊 Analizando…';
+    cargarAlertas();
+  }
+  document.addEventListener('click', e=>{
+    const dd = document.getElementById('connDropdown');
+    const sel = document.querySelector('.conn-selector');
+    if(dd && sel && !dd.contains(e.target) && !sel.contains(e.target)){ dd.style.display='none'; }
+  });
   function fmtMoneda(n){ if(n===null||n===undefined) return '—'; return '$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0}); }
 
   async function refreshAccessToken(){
@@ -229,12 +280,14 @@
     try{
       const res=await fetchConAuth(API+'/conexiones'); const conexiones=await res.json();
       if(!Array.isArray(conexiones)||conexiones.length===0){ document.getElementById('connName').textContent='Sin conexión'; mostrarError('sin_conexion'); return; }
+      listaConexiones = conexiones;
       if(!connId||!conexiones.find(c=>c.id===connId)){ connId=conexiones[0].id; localStorage.setItem('yvex_conn_id',connId); localStorage.setItem('yvex_conn_name',conexiones[0].nombre); }
       const activa=conexiones.find(c=>c.id===connId)||conexiones[0];
       document.getElementById('connName').textContent=activa.nombre;
+      renderConnDropdown();
     }catch{ mostrarError('conexiones'); return; }
     // usuario
-    try{ const r=await fetchConAuth(API+'/me'); const u=await r.json(); if(u.email){ usuarioEmail=u.email; document.getElementById('userEmail').textContent=u.email; document.getElementById('avatar').textContent=u.email.charAt(0).toUpperCase(); } if(u.tipo_suscripcion) document.getElementById('userPlan').textContent=u.tipo_suscripcion; }catch{}
+    try{ const r=await fetchConAuth(API+'/me'); const u=await r.json(); if(u.email){ usuarioEmail=u.email; document.getElementById('userEmail').textContent=u.email; document.getElementById('avatar').textContent=u.email.charAt(0).toUpperCase(); } const planTextos={'gratuito':'Plan Gratuito','basico':'Plan Básico','pro':'Plan Pro','enterprise':'Plan Enterprise'}; if(u.plan) document.getElementById('userPlan').textContent=planTextos[u.plan]||('Plan '+u.plan); }catch{}
     // alertas
     cargarAlertas();
   }
@@ -244,6 +297,7 @@
       const res=await fetchConAuth(API+`/alertas?conexion_id=${connId}`);
       const d=await res.json();
       document.getElementById('skeleton').classList.add('hidden');
+      if(!res.ok){ const cod = (d.detail && typeof d.detail==='object') ? d.detail.codigo : (d.detail||'error'); mostrarError(cod); return; }
       if(d.error){ mostrarError(d.error); return; }
 
       // Día en curso

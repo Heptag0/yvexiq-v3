@@ -193,7 +193,7 @@
         <div class="field">
           <label>Contraseña</label>
           <div class="irow">
-            <input type="password" id="register-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password"/>
+            <input type="password" id="register-password" placeholder="Mínimo 8 caracteres, letra y número" autocomplete="new-password"/>
             <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <button class="toggle-pass" onclick="togglePassword('register-password', this)" tabindex="-1">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -242,6 +242,24 @@
 
     function isValidEmail(email) {
       return /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email);
+    }
+
+    // Extrae un mensaje legible del error del backend.
+    // detail puede ser: objeto {codigo, mensaje, reintentar_en}, o texto plano (errores viejos).
+    function mensajeError(data, status, porDefecto) {
+      const d = data && data.detail;
+      if (d && typeof d === 'object') {
+        let msg = d.mensaje || porDefecto;
+        // Si es bloqueo por rate limit con tiempo de espera, lo añadimos
+        if (d.reintentar_en && d.reintentar_en > 0) {
+          const min = Math.ceil(d.reintentar_en / 60);
+          msg += min > 1 ? ` (espera ~${min} minutos)` : ' (espera ~1 minuto)';
+        }
+        return msg;
+      }
+      if (typeof d === 'string' && d) return d;
+      if (status === 429) return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+      return porDefecto;
     }
 
     function switchTab(tab, el) {
@@ -296,7 +314,7 @@
         fd.append('password', pass);
         const res = await fetch(API + '/login', { method: 'POST', body: fd, credentials: 'include' });
         const data = await res.json();
-        if (!res.ok) showMsg('login-error', data.detail || 'Credenciales incorrectas.');
+        if (!res.ok) showMsg('login-error', mensajeError(data, res.status, 'Credenciales incorrectas.'));
         else {
             localStorage.setItem('yvex_token', data.access_token);
             if (data.es_admin) {
@@ -319,7 +337,8 @@
 
       if (!email || !pass || !pass2) { showMsg('register-error', 'Completa todos los campos.'); return; }
       if (!isValidEmail(email)) { showMsg('register-error', 'El formato del correo no es válido.'); return; }
-      if (pass.length < 8) { showMsg('register-error', 'Mínimo 8 caracteres en la contraseña.'); return; }
+      if (pass.length < 8) { showMsg('register-error', 'La contraseña debe tener al menos 8 caracteres.'); return; }
+      if (!/[A-Za-z]/.test(pass) || !/[0-9]/.test(pass)) { showMsg('register-error', 'La contraseña debe incluir al menos una letra y un número.'); return; }
       if (pass !== pass2) { showMsg('register-error', 'Las contraseñas no coinciden.'); return; }
 
       setLoading('btn-register', 'register-spinner', 'register-text', true);
@@ -330,7 +349,7 @@
           body: JSON.stringify({ email, password: pass })
         });
         const data = await res.json();
-        if (!res.ok) showMsg('register-error', data.detail || 'Error al registrar.');
+        if (!res.ok) showMsg('register-error', mensajeError(data, res.status, 'Error al registrar.'));
         else {
           showMsg('register-success');
           document.getElementById('register-email').value = '';

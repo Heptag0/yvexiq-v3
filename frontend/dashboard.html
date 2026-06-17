@@ -311,6 +311,18 @@
       border-radius: 16px; padding: 16px 20px; font-size: 14px; color: #fda4af;
       line-height: 1.6;
     }
+    .msg-guide-bubble {
+      background: rgba(147,51,234,0.08); border: 1px solid rgba(147,51,234,0.2);
+      border-radius: 16px; padding: 16px 20px; font-size: 14px; color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .msg-action-btn {
+      display:inline-flex; align-items:center; gap:7px; margin-top:12px;
+      padding:9px 16px; border-radius:10px; background:rgba(147,51,234,0.15);
+      border:1px solid rgba(147,51,234,0.3); color:var(--violet-light);
+      font-size:13px; font-weight:600; text-decoration:none; cursor:pointer; transition:all 0.2s;
+    }
+    .msg-action-btn:hover { background:rgba(147,51,234,0.25); }
 
     @keyframes msgIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
@@ -375,6 +387,26 @@
     .input-hint kbd { background: rgba(255,255,255,0.08); border-radius: 4px; padding: 1px 6px; font-size: 10px; }
     #btn-borrar-historial { opacity: 0; }
     .sidebar.open #btn-borrar-historial { opacity: 1; }
+
+    /* ===== PANEL DE BIENVENIDA ===== */
+    .welcome { width:100%; max-width:680px; margin:0 auto; }
+    .welcome-greeting { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; margin-bottom:6px; text-align:center; }
+    .welcome-greeting em { font-style:italic; color:var(--violet-light); }
+    .welcome-date { font-size:13px; color:var(--text-faint); text-align:center; margin-bottom:28px; text-transform:capitalize; }
+    .welcome-cards { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+    @media (max-width:560px){ .welcome-cards { grid-template-columns:1fr; } }
+    .wcard { background:var(--panel-bg); border:1px solid var(--border); border-radius:16px; padding:18px 20px; text-decoration:none; color:inherit; transition:all 0.2s; display:block; }
+    .wcard:hover { border-color:rgba(147,51,234,0.3); background:rgba(147,51,234,0.06); transform:translateY(-1px); }
+    .wcard-label { font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-faint); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .wcard-value { font-family:'Playfair Display',serif; font-size:24px; font-weight:700; }
+    .wcard-extra { font-size:12px; color:var(--text-dim); margin-top:4px; }
+    .wcard.alert { border-left:3px solid var(--warn, #fbbf24); }
+    .wcard.alert .wcard-value { font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; line-height:1.4; }
+    .welcome-alert-detail { font-size:13px; color:var(--text-dim); margin-top:6px; line-height:1.5; }
+    .welcome-skel { height:90px; border-radius:16px; background:linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.07),rgba(255,255,255,0.03)); background-size:200% 100%; animation:wshimmer 1.4s infinite; }
+    @keyframes wshimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+    .welcome-prompt { font-size:13px; color:var(--text-dim); text-align:center; margin:22px 0 12px; }
+    @media (prefers-reduced-motion:reduce){ .welcome-skel{animation:none;} }
   </style>
 </head>
 <body>
@@ -512,14 +544,21 @@
     <!-- Chat -->
     <div class="chat-area" id="chat-area">
       <div class="empty-state" id="empty-state">
-        <div class="empty-icon">✦</div>
-        <h2 class="empty-title">¿Qué quieres <em>saber hoy?</em></h2>
-        <p class="empty-sub">Escribe cualquier pregunta sobre tu negocio en lenguaje natural. YvexIQ analiza tus datos y te responde al instante.</p>
+        <div class="welcome" id="welcome-panel">
+          <!-- Panel de bienvenida: lo llena cargarBienvenida() -->
+          <div class="empty-icon" style="margin:0 auto 14px;">✦</div>
+          <h2 class="welcome-greeting">¿Qué quieres <em>saber hoy?</em></h2>
+          <div class="welcome-date" id="welcome-date"></div>
+          <div class="welcome-cards" id="welcome-cards">
+            <div class="welcome-skel"></div>
+            <div class="welcome-skel"></div>
+          </div>
+        </div>
+        <div class="welcome-prompt">O pregúntame lo que quieras sobre tu negocio:</div>
         <div class="suggestions">
           <div class="sug-chip" onclick="useSuggestion(this)">¿Cuáles son mis 5 productos más vendidos?</div>
-          <div class="sug-chip" onclick="useSuggestion(this)">Ventas totales por mes este año</div>
-          <div class="sug-chip" onclick="useSuggestion(this)">¿Qué departamento genera más ingresos?</div>
-          <div class="sug-chip" onclick="useSuggestion(this)">Productos con más devoluciones</div>
+          <div class="sug-chip" onclick="useSuggestion(this)">¿Cuánto vendí este mes?</div>
+          <div class="sug-chip" onclick="useSuggestion(this)">¿Qué genera más ganancia en mi negocio?</div>
         </div>
       </div>
     </div>
@@ -672,9 +711,17 @@
 
       let html = `<div class="ai-avatar">Y</div><div class="msg-ai-content">`;
 
-      // Si es error/fallback
+      // Si es error/guía
       if (data.error) {
-        html += `<div class="msg-error-bubble">${marked.parse(data.error)}</div>`;
+        // Si viene con código (ej. sin_datos desde /consultar con 200), derivar acción
+        let accion = data.accion;
+        if (!accion && data.codigo === 'sin_datos') accion = 'conexiones';
+        const botones = {
+          conexiones: '<a class="msg-action-btn" href="conexiones.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>Ir a Conexiones</a>',
+          descargar: '<a class="msg-action-btn" href="descargar.html">⬇ Descargar el agente</a>'
+        };
+        const accionHtml = accion && botones[accion] ? botones[accion] : '';
+        html += `<div class="msg-guide-bubble">${marked.parse(data.error)}${accionHtml}</div>`;
         html += `</div>`;
         div.innerHTML = html;
         document.getElementById('chat-area').appendChild(div);
@@ -684,6 +731,11 @@
       // Explicación
       if (data.explicacion) {
         html += `<div class="ai-explanation">${marked.parse(data.explicacion)}</div>`;
+      }
+
+      // Respuesta sin resultados: la consulta corrió pero no encontró datos para esa pregunta
+      if (data.explicacion && (!data.resultados || data.resultados.length === 0) && !data.graficos) {
+        html += `<div style="font-size:13px;color:var(--text-faint);margin-top:8px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:10px;">No encontré datos para esa pregunta en concreto. Puede que no haya registros de eso en tu información, o que convenga preguntarlo de otra forma.</div>`;
       }
 
       // Tabla
@@ -757,6 +809,14 @@
       const query = input.value.trim();
       if (!query) return;
 
+      // Sin conexión activa: guiar en vez de fallar
+      if (!connId) {
+        addUserMsg(query);
+        input.value = ''; autoResize(input);
+        addAIMsg({ error: 'Primero necesito que conectes los datos de tu negocio. Ve a **Conexiones** y sube tu archivo, o descarga el agente si usas Eleventa u otro sistema.', accion: 'conexiones' });
+        return;
+      }
+
       const btn = document.getElementById('send-btn');
       btn.disabled = true;
       input.value = ''; autoResize(input);
@@ -773,18 +833,43 @@
         const data = await res.json();
         removeLoading();
         if (!res.ok) {
-          addAIMsg({ error: data.detail || 'Ocurrió un error.' });
+          // El backend ahora manda detail como objeto con codigo (o texto en errores viejos)
+          const info = traducirError(res.status, data.detail);
+          addAIMsg({ error: info.mensaje, accion: info.accion });
         } else {
           addAIMsg(data);
           cargarHistorial();
         }
       } catch {
         removeLoading();
-        addAIMsg({ error: 'No se pudo conectar con el servidor. Verifica que el backend esté activo.' });
+        addAIMsg({ error: 'No pude conectarme en este momento. Revisa tu conexión a internet e inténtalo de nuevo en unos segundos.' });
       } finally {
         btn.disabled = false;
         input.focus();
       }
+    }
+
+    // Traduce errores por CÓDIGO (robusto). Si no hay código, cae a heurística por texto.
+    function traducirError(status, detalle){
+      // detalle puede ser: objeto {codigo, mensaje}, o string (errores antiguos)
+      const codigo = (detalle && typeof detalle === 'object') ? detalle.codigo : null;
+
+      const porCodigo = {
+        limite_consultas: { mensaje: 'Has alcanzado tu límite de consultas por hoy. Mañana se renueva, o puedes pasar a un plan superior para tener más.', accion: null },
+        limite_conexiones: { mensaje: 'Has llegado al máximo de conexiones de tu plan. Para añadir más, puedes pasar a un plan superior.', accion: null },
+        sin_datos: { mensaje: 'Esta conexión todavía no tiene datos. Sincroniza tu información desde **Conexiones** (o con el agente) y vuelve a intentarlo.', accion: 'conexiones' },
+        sin_permiso: { mensaje: 'No tienes acceso a esta conexión. Revisa que esté seleccionada la base de datos correcta.', accion: null },
+        conexion_no_encontrada: { mensaje: 'No encuentro esa conexión. Puede que se haya eliminado. Revisa tus conexiones.', accion: 'conexiones' }
+      };
+      if (codigo && porCodigo[codigo]) return porCodigo[codigo];
+
+      // Fallback por estado HTTP (para errores que aún no tienen código)
+      if (status === 429) return { mensaje: 'Has alcanzado tu límite de consultas por hoy. Mañana se renueva, o puedes pasar a un plan superior.', accion: null };
+      if (status === 401) return { mensaje: 'Tu sesión expiró. Vuelve a iniciar sesión para continuar.', accion: null };
+      if (status === 403) return { mensaje: 'No tienes acceso a esto. Revisa que esté seleccionada la conexión correcta.', accion: null };
+
+      // Genérico, siempre humano
+      return { mensaje: 'No pude procesar esa consulta en este momento. Intenta reformular tu pregunta de otra forma, o prueba con algo más simple para empezar.', accion: null };
     }
     async function cargarHistorial() {
         try {
@@ -893,7 +978,85 @@
             }
 
             renderConnDropdown();
+            // Cargar el panel de bienvenida con el pulso del negocio
+            cargarBienvenida();
         } catch { console.error('Error cargando conexiones'); }
+    }
+
+    async function cargarBienvenida(){
+        const panel = document.getElementById('welcome-panel');
+        const cards = document.getElementById('welcome-cards');
+        const fechaEl = document.getElementById('welcome-date');
+        // Si el panel ya no está (usuario ya escribió), no hacemos nada
+        if(!panel || !cards || !connId) return;
+
+        // Fecha de hoy como saludo
+        const hoy = new Date();
+        const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+        if(fechaEl) fechaEl.textContent = `${DIAS[hoy.getDay()]}, ${hoy.getDate()} de ${MESES[hoy.getMonth()]}`;
+
+        const fmtMoneda = n => '$'+Number(n||0).toLocaleString('es-MX',{maximumFractionDigits:0});
+
+        try {
+            // Pedimos fechas (para el último día) y alertas en paralelo
+            const [resFechas, resAlertas] = await Promise.all([
+                fetchConAuth(API + `/agenda/fechas?conexion_id=${connId}`),
+                fetchConAuth(API + `/alertas?conexion_id=${connId}`)
+            ]);
+            // Si el usuario ya empezó a chatear, el empty-state se eliminó: abortar
+            if(!document.getElementById('welcome-cards')) return;
+
+            const fechas = await resFechas.json();
+            const alertasData = await resAlertas.json();
+
+            let html = '';
+
+            // Tarjeta 1: último día registrado (corte)
+            if(fechas && fechas.dias && fechas.dias.length){
+                const ultimoDia = fechas.dias[fechas.dias.length-1];
+                try {
+                    const resDia = await fetchConAuth(API + `/agenda/dia?conexion_id=${connId}&fecha=${ultimoDia}`);
+                    const dia = await resDia.json();
+                    if(!document.getElementById('welcome-cards')) return;
+                    if(dia && !dia.error && !dia.sin_datos){
+                        const [y,m,d] = ultimoDia.split('-');
+                        html += `<a class="wcard" href="agenda.html">
+                            <div class="wcard-label">📅 Tu último día registrado</div>
+                            <div class="wcard-value">${fmtMoneda(dia.total)}</div>
+                            <div class="wcard-extra">${dia.tickets} tickets · ${d}/${m} · ver detalle →</div>
+                        </a>`;
+                    }
+                } catch {}
+            }
+
+            // Tarjeta 2: alerta más relevante (solo si hay de atención), o el mejor día
+            if(alertasData && alertasData.alertas && alertasData.alertas.length){
+                const orden={atencion:0,positivo:1,info:2};
+                const top = [...alertasData.alertas].sort((a,b)=>orden[a.nivel]-orden[b.nivel])[0];
+                const esAtencion = top.nivel==='atencion';
+                html += `<a class="wcard ${esAtencion?'alert':''}" href="alertas.html">
+                    <div class="wcard-label">${esAtencion?'⚠️ Conviene mirar':'✨ YvexIQ notó'}</div>
+                    <div class="wcard-value">${top.titulo}</div>
+                    <div class="welcome-alert-detail">${top.detalle} <span style="color:var(--violet-light)">Ver alertas →</span></div>
+                </a>`;
+            } else {
+                // sin alertas: tarjeta tranquila que invita a alertas
+                html += `<a class="wcard" href="alertas.html">
+                    <div class="wcard-label">✓ Estado del negocio</div>
+                    <div class="wcard-value" style="font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;">Todo dentro de lo normal</div>
+                    <div class="wcard-extra">No hay alertas pendientes · ver alertas →</div>
+                </a>`;
+            }
+
+            if(html){ cards.innerHTML = html; cards.style.display = 'grid'; }
+            else { cards.style.display = 'none'; }
+
+        } catch {
+            // Si algo falla, simplemente ocultamos las tarjetas: el chat sigue normal
+            const c = document.getElementById('welcome-cards');
+            if(c) c.style.display = 'none';
+        }
     }
 
     function renderConnDropdown() {
@@ -911,6 +1074,7 @@
     }
 
     function seleccionarConexion(c) {
+        if(c.id === connId){ toggleConnDropdown(); return; }
         connId = c.id;
         localStorage.setItem('yvex_conn_id', c.id);
         localStorage.setItem('yvex_conn_name', c.nombre);
@@ -918,6 +1082,14 @@
         document.getElementById('active-conn-label').textContent = c.nombre;
         renderConnDropdown();
         toggleConnDropdown();
+        // Si el panel de bienvenida sigue visible, recargarlo con la nueva conexión.
+        // (Si el usuario ya está chateando, el empty-state no existe y no se toca el chat.)
+        if(document.getElementById('welcome-cards')){
+            const cards = document.getElementById('welcome-cards');
+            cards.style.display = 'grid';
+            cards.innerHTML = '<div class="welcome-skel"></div><div class="welcome-skel"></div>';
+            cargarBienvenida();
+        }
     }
 
     function toggleConnDropdown() {
