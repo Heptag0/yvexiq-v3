@@ -16,6 +16,7 @@ from limits import verificar_limite_consultas, verificar_limite_conexiones
 import analisis
 import secrets
 import seguridad
+import pagos
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -375,6 +376,108 @@ def verificar_admin(current_user: Usuario = Depends(auth.get_current_user)):
     if not current_user.es_admin:
         raise HTTPException(status_code=403, detail="Acceso denegado")
     return current_user
+
+
+# ════════════════════════════════════════════
+#   PAGOS — Mercado Pago (suscripciones)
+# ════════════════════════════════════════════
+
+@app.post("/suscripcion/crear")
+def crear_suscripcion(data: dict, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    """
+    Devuelve el link de checkout de Mercado Pago para el plan elegido.
+    data: {"plan": "basico"|"pro", "periodo": "mensual"|"anual"}
+    """
+    if not pagos.esta_configurado():
+        raise HTTPException(status_code=503, detail={"codigo": "pagos_no_disponibles", "mensaje": "Los pagos no están disponibles en este momento."})
+
+    plan = data.get("plan")
+    periodo = data.get("periodo")
+    if plan not in ("basico", "pro") or periodo not in ("mensual", "anual"):
+        raise HTTPException(status_code=400, detail={"codigo": "plan_invalido", "mensaje": "Plan o periodo no válido."})
+
+    try:
+        resultado = pagos.crear_suscripcion(
+            plan=plan,
+            periodo=periodo,
+            email_usuario=current_user.email,
+            referencia=current_user.id,
+        )
+    except ValueError:
+        raise HTTPException(status_code=502, detail={"codigo": "error_pago", "mensaje": "No se pudo iniciar el pago. Intenta de nuevo más tarde."})
+
+    return {"init_point": resultado["init_point"], "preapproval_id": resultado["preapproval_id"]}
+
+
+@app.post("/webhook/mercadopago")
+async def webhook_mercadopago(request: Request, db: Session = Depends(get_db)):
+    """
+    Recibe notificaciones de Mercado Pago sobre cambios en las suscripciones.
+    Verifica el estado REAL consultando a MP (no confía en el cuerpo del webhook)
+    y activa o desactiva el plan del usuario según corresponda.
+    """
+    # MP envía el id del recurso por query o por body, según el tipo de notificación
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    # Identificar la suscripción afectada
+    tipo = body.get("type") or request.query_params.get("type")
+    preapproval_id = None
+    if body.get("data") and isinstance(body["data"], dict):
+        preapproval_id = body["data"].get("id")
+    if not preapproval_id:
+        preapproval_id = request.query_params.get("id") or request.query_params.get("data.id")
+
+    # Solo nos interesan notificaciones de suscripciones
+    if not preapproval_id:
+        return {"status": "ignored"}
+
+    # Consultar el estado REAL en Mercado Pago (no confiar en el webhook a ciegas)
+    try:
+        sub = pagos.consultar_suscripcion(preapproval_id)
+    except Exception:
+        # Si no se pudo consultar, devolvemos 200 para que MP no reintente en bucle,
+        # pero no cambiamos nada.
+        return {"status": "no_verificado"}
+
+    status_mp = sub.get("status")
+
+    # Identificar al usuario: primero por external_reference (si viene), luego por email.
+    # Con el enfoque de links de plan, MP comparte el email del pagador (payer_email).
+    usuario = None
+    referencia = sub.get("external_reference")
+    if referencia:
+        try:
+            usuario = db.query(Usuario).filter(Usuario.id == int(referencia)).first()
+        except (ValueError, TypeError):
+            usuario = None
+    if not usuario:
+        email_pagador = sub.get("payer_email")
+        if email_pagador:
+            usuario = db.query(Usuario).filter(Usuario.email == email_pagador).first()
+
+    if not usuario:
+        return {"status": "usuario_no_encontrado"}
+
+    # Aplicar el cambio de plan según el estado real de la suscripción
+    if pagos.estado_implica_activo(status_mp):
+        # La suscripción está activa y al día. Derivar el plan del nombre (reason).
+        plan_detectado, _ = pagos.plan_desde_reason(sub.get("reason"))
+        if plan_detectado:
+            usuario.tipo_suscripcion = plan_detectado
+        usuario.suscripcion_activa = True
+        usuario.fecha_inicio_suscripcion = datetime.utcnow()
+        db.commit()
+    else:
+        # paused / cancelled / etc. -> el usuario deja de tener plan de pago
+        usuario.suscripcion_activa = False
+        usuario.tipo_suscripcion = "gratuito"
+        db.commit()
+
+    return {"status": "ok"}
+
 
 @app.get("/admin/usuarios")
 def admin_usuarios(db: Session = Depends(get_db), admin: Usuario = Depends(verificar_admin)):
