@@ -153,6 +153,41 @@
     .region-btn:hover:not(.active) { border-color: rgba(147,51,234,0.25); color: var(--text-dim); }
     .region-note { font-size: 12px; color: var(--text-faint); text-align: center; margin-top: 16px; }
 
+    /* AGENDA Y ALERTAS */
+    .aa-grid { max-width: 1000px; margin: 64px auto 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .aa-card { background: linear-gradient(145deg, rgba(147,51,234,0.1), rgba(192,38,211,0.04)); border: 1px solid rgba(147,51,234,0.2); border-radius: 20px; padding: 32px 28px; transition: all 0.3s; }
+    .aa-card:hover { border-color: rgba(147,51,234,0.4); transform: translateY(-4px); box-shadow: 0 20px 50px rgba(147,51,234,0.12); }
+    .aa-icon { font-size: 36px; margin-bottom: 18px; }
+    .aa-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+    .aa-desc { font-size: 14px; color: var(--text-dim); line-height: 1.7; }
+
+    /* DEMOS VISUALES DE AGENDA Y ALERTAS */
+    .aa-demos { max-width: 900px; margin: 40px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .aa-demo-window { background: rgba(11,13,30,0.9); border: 1px solid rgba(147,51,234,0.2); border-radius: 18px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,10,0.5); }
+    .aa-demo-body { padding: 20px; }
+    .aa-agenda-head { font-size: 13px; color: var(--text-faint); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .aa-stat-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .aa-stat { flex: 1; background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.15); border-radius: 12px; padding: 12px; text-align: center; }
+    .aa-stat-label { font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
+    .aa-stat-val { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--violet-light); }
+    .aa-agenda-note { font-size: 13px; color: var(--text-dim); line-height: 1.6; padding: 12px; background: var(--glass); border-radius: 10px; border-left: 2px solid var(--violet); }
+    .aa-alert { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: var(--text-dim); margin-bottom: 10px; }
+    .aa-alert:last-child { margin-bottom: 0; }
+    .aa-alert strong { color: var(--text); }
+    .aa-alert-icon { flex-shrink: 0; }
+    .aa-alert-warn { background: rgba(254,188,46,0.08); border: 1px solid rgba(254,188,46,0.2); }
+    .aa-alert-good { background: rgba(40,200,64,0.08); border: 1px solid rgba(40,200,64,0.2); }
+    .aa-alert-info { background: var(--violet-dim); border: 1px solid rgba(147,51,234,0.2); }
+
+    /* TOGGLE FACTURACION */
+    .billing-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 auto 40px; background: var(--glass); border: 1px solid var(--border); border-radius: 14px; padding: 5px; width: fit-content; }
+    .billing-btn { padding: 10px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; background: transparent; color: var(--text-faint); font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 8px; }
+    .billing-btn.active { background: linear-gradient(135deg, var(--violet), var(--magenta)); color: white; box-shadow: 0 4px 14px var(--violet-glow); }
+    .billing-save { font-size: 11px; font-weight: 700; background: rgba(40,200,64,0.15); color: #4ade80; padding: 2px 8px; border-radius: 10px; }
+    .billing-btn.active .billing-save { background: rgba(255,255,255,0.2); color: white; }
+    .plan-anual-note { font-size: 12px; color: #4ade80; font-weight: 600; margin-bottom: 4px; min-height: 16px; }
+    .plan-per { font-size: 16px; font-weight: 400; color: var(--text-faint); }
+
     /* CTA */
     .cta-section { text-align: center; padding: 100px 24px; position: relative; overflow: hidden; }
     .cta-aurora { position: absolute; inset: 0; pointer-events: none; }
@@ -176,31 +211,20 @@
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
       .nav-links { display: none; }
-      .steps, .features-grid, .pricing-grid { grid-template-columns: 1fr; }
+      .steps, .features-grid, .pricing-grid, .aa-grid, .aa-demos { grid-template-columns: 1fr; }
       .hero { padding: 100px 20px 60px; }
+      section { padding: 72px 20px; }
+      .hero-actions { flex-direction: column; width: 100%; }
+      .btn-hero, .btn-hero-ghost { width: 100%; justify-content: center; }
+      .billing-toggle { width: 100%; }
+      .billing-btn { flex: 1; justify-content: center; }
+      .plan.featured { order: -1; }
+      .compat-row { flex-direction: column; }
+      .compat-chip { width: 100%; }
       footer { flex-direction: column; align-items: center; text-align: center; padding: 32px 24px; }
-    }
-
-    /* ===== MOVIMIENTO AL SCROLL (reveal + profundidad) ===== */
-    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); will-change: opacity, transform; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    /* variantes de entrada */
-    .reveal.from-left  { transform: translateX(-50px); }
-    .reveal.from-right { transform: translateX(50px); }
-    .reveal.from-left.visible, .reveal.from-right.visible { transform: translateX(0); }
-    .reveal.scale-in   { transform: translateY(40px) scale(0.96); }
-    .reveal.scale-in.visible { transform: translateY(0) scale(1); }
-    /* escalonado para grids de tarjetas */
-    .reveal.d1 { transition-delay: 0.08s; }
-    .reveal.d2 { transition-delay: 0.16s; }
-    .reveal.d3 { transition-delay: 0.24s; }
-    .reveal.d4 { transition-delay: 0.32s; }
-    .reveal.d5 { transition-delay: 0.40s; }
-    /* parallax: las auroras se mueven con el scroll vía variable */
-    .ha, .ca { will-change: transform; }
-    /* título de sección con un leve gradiente animado al revelarse */
-    @media (prefers-reduced-motion: reduce) {
-      .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+      .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+      .hero-demo { margin-top: 40px; }
+      .demo-window { max-width: 100%; }
     }
   </style>
 </head>
@@ -213,8 +237,9 @@
     </a>
     <div class="nav-links">
       <a href="#como-funciona">Cómo funciona</a>
+      <a href="#agenda-alertas">Novedades</a>
       <a href="#features">Funciones</a>
-      <a href="#precios">Precios</a>
+      <a href="/suscripciones.html">Precios</a>
     </div>
     <div class="nav-cta">
       <a class="btn-ghost" href="login.html">Iniciar sesión</a>
@@ -247,7 +272,7 @@
         </a>
         <a class="btn-hero-ghost" href="/descargar">⬇ Descargar agente</a>
       </div>
-      <p class="hero-note">✦ Sin tarjeta de crédito · 10 consultas gratis al día · Cancela cuando quieras</p>
+      <p class="hero-note">✦ Sin tarjeta de crédito · Plan gratuito para siempre · Cancela cuando quieras</p>
       <div class="hero-demo">
         <div class="demo-window">
           <div class="demo-bar">
@@ -263,15 +288,15 @@
             <div class="demo-msg-ai">
               <div class="demo-ai-icon">Y</div>
               <div class="demo-bubble-ai">
-                El refresco de cola lidera en unidades, pero fíjate en algo: los cigarros venden menos piezas y aun así te dejan más dinero en caja. El producto más vendido no siempre es el que más te conviene.
+                Aquí están tus productos más vendidos. Las bebidas dominan tu volumen, pero fíjate que el cigarro suelto deja muy buen margen pese a su bajo precio.
                 <table class="demo-table">
                   <thead><tr><th>Producto</th><th>Unidades</th><th>Ingresos</th></tr></thead>
                   <tbody>
-                    <tr><td>Refresco Cola 600ml</td><td>1,240</td><td>$18,600</td></tr>
-                    <tr><td>Cigarros (cajetilla)</td><td>980</td><td>$63,700</td></tr>
-                    <tr><td>Agua 1L</td><td>870</td><td>$8,700</td></tr>
-                    <tr><td>Sabritas surtidas</td><td>760</td><td>$13,680</td></tr>
-                    <tr><td>Cerveza lata 355ml</td><td>645</td><td>$12,255</td></tr>
+                    <tr><td>Cerveza (bote)</td><td>5,689</td><td>$34,134</td></tr>
+                    <tr><td>Cigarro suelto</td><td>5,446</td><td>$21,784</td></tr>
+                    <tr><td>Refresco 600ml</td><td>3,842</td><td>$26,894</td></tr>
+                    <tr><td>Sabritas</td><td>2,434</td><td>$19,472</td></tr>
+                    <tr><td>Leche 1L</td><td>2,052</td><td>$28,728</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -284,25 +309,25 @@
 
   <section id="como-funciona">
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center reveal">
+      <div class="section-center">
         <div class="section-label">Proceso</div>
         <h2 class="section-title">Tan simple como <em>hacer una pregunta</em></h2>
         <p class="section-sub">Tres pasos y tu negocio empieza a hablarte en datos.</p>
       </div>
       <div class="steps">
-        <div class="step reveal scale-in d1">
+        <div class="step">
           <div class="step-num">01</div>
           <div class="step-icon">🔌</div>
           <div class="step-title">Conecta tu base de datos</div>
           <div class="step-desc">Instala el agente local en tu PC. Detecta automáticamente tu sistema Eleventa, CONTPAQi, Excel o CSV. Sin configuración técnica.</div>
         </div>
-        <div class="step reveal scale-in d2">
+        <div class="step">
           <div class="step-num">02</div>
           <div class="step-icon">✦</div>
           <div class="step-title">YvexIQ aprende tu negocio</div>
           <div class="step-desc">Nuestra IA analiza la estructura de tus datos y aprende qué tablas y columnas son importantes para tu tipo de negocio.</div>
         </div>
-        <div class="step reveal scale-in d3">
+        <div class="step">
           <div class="step-num">03</div>
           <div class="step-icon">💬</div>
           <div class="step-title">Pregunta lo que quieras</div>
@@ -312,92 +337,169 @@
     </div>
   </section>
 
-  <section id="features" class="features-bg">
+  <section id="agenda-alertas" class="features-bg">
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center reveal">
+      <div class="section-center">
+        <div class="section-label">Novedad</div>
+        <h2 class="section-title">Tu negocio te avisa,<br><em>sin que preguntes</em></h2>
+        <p class="section-sub">YvexIQ no espera a que abras la app. Vigila tus números todos los días y te avisa cuando algo merece tu atención.</p>
+      </div>
+
+      <div class="aa-grid">
+        <div class="aa-card">
+          <div class="aa-icon">📅</div>
+          <div class="aa-title">Agenda diaria</div>
+          <div class="aa-desc">Cada día, un resumen claro de cómo va tu negocio: ventas, ganancia y movimiento. Lo primero que ves al entrar, sin tener que preguntar nada.</div>
+        </div>
+        <div class="aa-card">
+          <div class="aa-icon">🔔</div>
+          <div class="aa-title">Alertas inteligentes</div>
+          <div class="aa-desc">¿Cayeron las ventas? ¿Un producto dejó de venderse? ¿Tu mejor día de la semana? YvexIQ lo detecta solo y te lo señala antes de que sea un problema.</div>
+        </div>
+        <div class="aa-card">
+          <div class="aa-icon">📨</div>
+          <div class="aa-title">Avisos por correo</div>
+          <div class="aa-desc">Con los planes de pago, las alertas te llegan directo al correo. Te enteras de lo importante aunque no entres a la app en todo el día.</div>
+        </div>
+      </div>
+
+      <div class="aa-demos">
+        <div class="aa-demo-window">
+          <div class="demo-bar">
+            <div class="demo-dot"></div><div class="demo-dot"></div><div class="demo-dot"></div>
+            <div class="demo-title">📅 Tu agenda de hoy</div>
+          </div>
+          <div class="aa-demo-body">
+            <div class="aa-agenda-head">Martes, resumen del día</div>
+            <div class="aa-stat-row">
+              <div class="aa-stat"><div class="aa-stat-label">Ventas</div><div class="aa-stat-val">$8,420</div></div>
+              <div class="aa-stat"><div class="aa-stat-label">Ganancia</div><div class="aa-stat-val">$1,680</div></div>
+              <div class="aa-stat"><div class="aa-stat-label">Tickets</div><div class="aa-stat-val">112</div></div>
+            </div>
+            <div class="aa-agenda-note">Vas 12% arriba comparado con el martes pasado. Buen ritmo.</div>
+          </div>
+        </div>
+
+        <div class="aa-demo-window">
+          <div class="demo-bar">
+            <div class="demo-dot"></div><div class="demo-dot"></div><div class="demo-dot"></div>
+            <div class="demo-title">🔔 Alertas de tu negocio</div>
+          </div>
+          <div class="aa-demo-body">
+            <div class="aa-alert aa-alert-warn">
+              <span class="aa-alert-icon">⚠️</span>
+              <div><strong>Atención:</strong> las ventas de refrescos bajaron 28% esta semana frente a la anterior.</div>
+            </div>
+            <div class="aa-alert aa-alert-good">
+              <span class="aa-alert-icon">📈</span>
+              <div><strong>Buena señal:</strong> los viernes son tu mejor día. Promedias 35% más que el resto.</div>
+            </div>
+            <div class="aa-alert aa-alert-info">
+              <span class="aa-alert-icon">💡</span>
+              <div><strong>Dato:</strong> el cigarro suelto deja casi el doble de margen que la cerveza.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div style="max-width:1100px;margin:0 auto;">
+      <div class="section-center">
         <div class="section-label">Funciones</div>
         <h2 class="section-title">Todo lo que necesitas para<br><em>entender tu negocio</em></h2>
       </div>
       <div class="features-grid">
-        <div class="feat reveal scale-in d1"><div class="feat-icon">🧠</div><div class="feat-title">IA generativa avanzada</div><div class="feat-desc">Inteligencia artificial de última generación, optimizada para el análisis de datos de negocio. Respuestas en segundos.</div></div>
-        <div class="feat reveal scale-in d2"><div class="feat-icon">📊</div><div class="feat-title">Gráficos automáticos</div><div class="feat-desc">YvexIQ decide qué tipo de gráfico es más apropiado para cada consulta y lo genera automáticamente con visualizaciones interactivas.</div></div>
-        <div class="feat reveal scale-in d3"><div class="feat-icon">💬</div><div class="feat-title">Explicaciones en lenguaje natural</div><div class="feat-desc">No solo datos — también interpretaciones claras. Como tener un analista de negocio disponible 24/7.</div></div>
-        <div class="feat reveal scale-in d1"><div class="feat-icon">🔒</div><div class="feat-title">Tus datos, tu privacidad</div><div class="feat-desc">Los datos nunca salen de tu control. El agente local sincroniza de forma segura y encriptada con tu cuenta personal.</div></div>
-        <div class="feat reveal scale-in d2"><div class="feat-icon">🔌</div><div class="feat-title">Compatible con tu software</div><div class="feat-desc">Funciona con Eleventa, CONTPAQi, Excel y CSV. Sin necesidad de cambiar el software que ya usas en tu negocio.</div></div>
-        <div class="feat reveal scale-in d3"><div class="feat-icon">📱</div><div class="feat-title">Acceso desde cualquier lugar</div><div class="feat-desc">Consulta los datos de tu negocio desde el navegador, en cualquier dispositivo, sin necesidad de estar en tu computadora.</div></div>
+        <div class="feat"><div class="feat-icon">🧠</div><div class="feat-title">IA generativa avanzada</div><div class="feat-desc">Powered by Claude Haiku — el modelo más preciso para análisis de datos de negocio. Respuestas en menos de 3 segundos.</div></div>
+        <div class="feat"><div class="feat-icon">📊</div><div class="feat-title">Gráficos automáticos</div><div class="feat-desc">YvexIQ decide qué tipo de gráfico es más apropiado para cada consulta y lo genera automáticamente con visualizaciones interactivas.</div></div>
+        <div class="feat"><div class="feat-icon">💬</div><div class="feat-title">Explicaciones en lenguaje natural</div><div class="feat-desc">No solo datos — también interpretaciones claras. Como tener un analista de negocio disponible 24/7.</div></div>
+        <div class="feat"><div class="feat-icon">🔒</div><div class="feat-title">Tus datos, tu privacidad</div><div class="feat-desc">Los datos nunca salen de tu control. El agente local sincroniza de forma segura y encriptada con tu cuenta personal.</div></div>
+        <div class="feat"><div class="feat-icon">🔌</div><div class="feat-title">Compatible con tu software</div><div class="feat-desc">Funciona con Eleventa, CONTPAQi, Excel y CSV. Sin necesidad de cambiar el software que ya usas en tu negocio.</div></div>
+        <div class="feat"><div class="feat-icon">📱</div><div class="feat-title">Acceso desde cualquier lugar</div><div class="feat-desc">Consulta los datos de tu negocio desde el navegador, en cualquier dispositivo, sin necesidad de estar en tu computadora.</div></div>
       </div>
     </div>
   </section>
 
   <section>
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center reveal">
+      <div class="section-center">
         <div class="section-label">Compatibilidad</div>
         <h2 class="section-title">Funciona con el software<br><em>que ya usas</em></h2>
         <p class="section-sub">Compatible con los sistemas más populares en México, España y LATAM. Sin migraciones ni cambios.</p>
       </div>
       <div class="compat-row">
-        <div class="compat-chip reveal d1"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Eleventa</div><div class="compat-chip-sub">Punto de venta México</div></div></div>
-        <div class="compat-chip reveal d2"><div class="compat-chip-icon">📋</div><div><div class="compat-chip-name">CONTPAQi</div><div class="compat-chip-sub">Contabilidad y nómina</div></div></div>
-        <div class="compat-chip reveal d3"><div class="compat-chip-icon">📊</div><div><div class="compat-chip-name">Excel / CSV</div><div class="compat-chip-sub">Universal</div></div></div>
-        <div class="compat-chip reveal d4"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Firebird</div><div class="compat-chip-sub">Motor de BD legacy</div></div></div>
-        <div class="compat-chip reveal d5"><div class="compat-chip-icon">🔜</div><div><div class="compat-chip-name">Más próximamente</div><div class="compat-chip-sub">MySQL, SQL Server...</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Eleventa</div><div class="compat-chip-sub">Punto de venta México</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">📋</div><div><div class="compat-chip-name">CONTPAQi</div><div class="compat-chip-sub">Contabilidad y nómina</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">📊</div><div><div class="compat-chip-name">Excel / CSV</div><div class="compat-chip-sub">Universal</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">🔥</div><div><div class="compat-chip-name">Firebird</div><div class="compat-chip-sub">Motor de BD legacy</div></div></div>
+        <div class="compat-chip"><div class="compat-chip-icon">🔜</div><div><div class="compat-chip-name">Más próximamente</div><div class="compat-chip-sub">MySQL, SQL Server...</div></div></div>
       </div>
     </div>
   </section>
 
   <section id="precios" class="features-bg">
     <div style="max-width:1100px;margin:0 auto;">
-      <div class="section-center reveal">
+      <div class="section-center">
         <div class="section-label">Precios</div>
         <h2 class="section-title">Simple, transparente,<br><em>sin sorpresas</em></h2>
         <p class="section-sub">Empieza gratis y escala cuando lo necesites.</p>
       </div>
 
+      <div class="billing-toggle">
+        <button class="billing-btn active" id="bill-mensual" onclick="setCiclo('mensual')">Mensual</button>
+        <button class="billing-btn" id="bill-anual" onclick="setCiclo('anual')">Anual <span class="billing-save">2 meses gratis</span></button>
+      </div>
+
       <div class="pricing-grid">
-        <div class="plan reveal scale-in d1">
+        <div class="plan">
           <div class="plan-name">Gratuito</div>
-          <div class="plan-price"><sup id="sym-0">$</sup><span id="price-0">0</span><span id="per-0">/mes</span></div>
-          <div class="plan-desc">Para explorar YvexIQ y ver si es lo que necesitas.</div>
+          <div class="plan-price"><sup id="sym-0">$</sup><span id="price-0">0</span><span class="plan-per" id="per-0">/mes</span></div>
+          <div class="plan-desc">Para conocer YvexIQ y ver lo que puede hacer por tu negocio.</div>
           <div class="plan-features">
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>10 consultas por día</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>1 conexión de base de datos</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Tablas y gráficos básicos</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Explicaciones en lenguaje natural</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>5 análisis profundos + 10 rápidos al día</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>1 conexión</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Agenda y alertas en la app</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Gráficos y explicaciones claras</div>
           </div>
           <a class="btn-plan btn-plan-outline" href="login.html">Empezar gratis</a>
         </div>
 
-        <div class="plan featured reveal scale-in d2">
+        <div class="plan featured">
           <div class="plan-badge">⚡ Más popular</div>
           <div class="plan-name">Básico</div>
-          <div class="plan-price"><sup id="sym-1">$</sup><span id="price-1">150</span><span id="per-1">/mes MXN</span></div>
-          <div class="plan-desc">Para negocios que consultan sus datos a diario.</div>
+          <div class="plan-price"><sup id="sym-1">$</sup><span id="price-1">199</span><span class="plan-per" id="per-1">/mes MXN</span></div>
+          <div class="plan-anual-note" id="anual-note-1"></div>
+          <div class="plan-desc">El plan completo para el negocio que vive de sus números.</div>
           <div class="plan-features">
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>30 consultas por día</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>2 conexiones de base de datos</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Gráficos interactivos ECharts</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Análisis con inteligencia artificial</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Historial de consultas</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>20 análisis profundos + 30 rápidos al día</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>3 conexiones</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><strong>Alertas automáticas por correo</strong></div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><strong>Memoria conversacional</strong></div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><strong>Reportes automáticos</strong></div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Soporte prioritario</div>
           </div>
           <a class="btn-plan btn-plan-filled" href="login.html">Empezar ahora</a>
         </div>
 
-        <div class="plan reveal scale-in d3">
+        <div class="plan">
           <div class="plan-name">Pro</div>
-          <div class="plan-price"><sup id="sym-2">$</sup><span id="price-2">300</span><span id="per-2">/mes MXN</span></div>
-          <div class="plan-desc">Para negocios que necesitan análisis avanzado sin límites.</div>
+          <div class="plan-price"><sup id="sym-2">$</sup><span id="price-2">389</span><span class="plan-per" id="per-2">/mes MXN</span></div>
+          <div class="plan-anual-note" id="anual-note-2"></div>
+          <div class="plan-desc">Para quien tiene varios negocios o exige lo máximo.</div>
           <div class="plan-features">
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Consultas ilimitadas</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>5 conexiones de base de datos</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>50 análisis profundos + 70 rápidos al día</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>6 conexiones</div>
             <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Todo lo del plan Básico</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Soporte por WhatsApp</div>
-            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Comparativas entre períodos</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span><strong>Soporte VIP por WhatsApp</strong></div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Comparar varias tiendas entre sí</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Exportar reportes a PDF y Excel</div>
+            <div class="pf"><span class="pf-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Alertas personalizables y usuarios extra</div>
           </div>
           <a class="btn-plan btn-plan-outline" href="login.html">Empezar ahora</a>
         </div>
       </div>
-      <p class="region-note" id="region-note">Precios en pesos mexicanos (MXN). Impuestos no incluidos.</p>
+      <p class="region-note" id="region-note">Precios en pesos mexicanos (MXN). Impuestos no incluidos. Puedes cambiar o cancelar tu plan cuando quieras.</p>
     </div>
   </section>
 
@@ -406,7 +508,7 @@
       <div class="ca ca1"></div>
       <div class="ca ca2"></div>
     </div>
-    <div class="cta-content reveal scale-in">
+    <div class="cta-content">
       <h2 class="cta-title">Tu negocio tiene<br><em>muchas respuestas.</em><br>Solo hay que preguntar.</h2>
       <p class="cta-sub">Únete a los negocios hispanohablantes que ya toman decisiones basadas en datos, sin necesidad de ser expertos en tecnología.</p>
       <a class="btn-hero" href="login.html">
@@ -431,73 +533,66 @@
   </footer>
 
   <script>
+    // Precios por región y ciclo. anual = precio mensual equivalente pagando el año.
     const PRECIOS = {
-      mx:    { syms: ['$', '$', '$'],    prices: ['0', '150', '300'], pers: ['/mes', '/mes MXN', '/mes MXN'], note: 'Precios en pesos mexicanos (MXN). Impuestos no incluidos.' },
-      es:    { syms: ['€', '€', '€'],    prices: ['0', '9.99', '19.99'], pers: ['/mes', '/mes EUR', '/mes EUR'], note: 'Precios en euros (EUR). IVA no incluido.' },
-      latam: { syms: ['$', '$', '$'],    prices: ['0', '8', '16'], pers: ['/mes', '/mes USD', '/mes USD'], note: 'Precios en dólares estadounidenses (USD). Impuestos no incluidos.' }
+      mx: {
+        sym: '$', per: '/mes MXN',
+        mensual: { precios: ['0', '199', '389'] },
+        anual:   { precios: ['0', '149', '349'], notas: ['', 'Facturado $1,788/año', 'Facturado $4,188/año'] },
+        note: 'Precios en pesos mexicanos (MXN). Impuestos no incluidos. Puedes cambiar o cancelar tu plan cuando quieras.'
+      },
+      es: {
+        sym: '€', per: '/mes EUR',
+        mensual: { precios: ['0', '9.99', '19.99'] },
+        anual:   { precios: ['0', '7.99', '17.99'], notas: ['', 'Facturado 95.88€/año', 'Facturado 215.88€/año'] },
+        note: 'Precios en euros (EUR). IVA no incluido. Puedes cambiar o cancelar tu plan cuando quieras.'
+      },
+      latam: {
+        sym: '$', per: '/mes USD',
+        mensual: { precios: ['0', '9.99', '19.99'] },
+        anual:   { precios: ['0', '7.99', '17.99'], notas: ['', 'Facturado $95.88/año', 'Facturado $215.88/año'] },
+        note: 'Precios en dólares (USD). Impuestos no incluidos. Puedes cambiar o cancelar tu plan cuando quieras.'
+      }
     };
 
-    function setRegion(region) {
-        const p = PRECIOS[region];
-        for (let i = 0; i < 3; i++) {
-            document.getElementById('sym-' + i).textContent = p.syms[i];
-            document.getElementById('price-' + i).textContent = p.prices[i];
-            document.getElementById('per-' + i).textContent = p.pers[i];
-        }
-        document.getElementById('region-note').textContent = p.note;
+    let regionActual = 'mx';
+    let cicloActual = 'mensual';
+
+    function pintarPrecios() {
+      const p = PRECIOS[regionActual];
+      const ciclo = p[cicloActual];
+      for (let i = 0; i < 3; i++) {
+        document.getElementById('sym-' + i).textContent = p.sym;
+        document.getElementById('price-' + i).textContent = ciclo.precios[i];
+        document.getElementById('per-' + i).textContent = (i === 0) ? '/mes' : p.per;
+      }
+      // Notas de facturación anual (solo planes de pago)
+      for (let i = 1; i <= 2; i++) {
+        const nota = document.getElementById('anual-note-' + i);
+        if (nota) nota.textContent = (cicloActual === 'anual' && ciclo.notas) ? ciclo.notas[i] : '';
+      }
+      document.getElementById('region-note').textContent = p.note;
     }
 
-    // ===== REVEAL AL SCROLL =====
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          io.unobserve(entry.target); // una sola vez
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-    // ===== PARALLAX SUTIL EN AURORAS =====
-    // Las auroras del hero ya tienen animacion (haFloat) que usa transform.
-    // Para no pisarla, movemos el CONTENEDOR (.hero-aurora / .cta-aurora), no cada aurora.
-    const auroraLayers = document.querySelectorAll('.hero-aurora, .cta-aurora');
-    let ticking = false;
-    function parallax() {
-      const y = window.scrollY;
-      auroraLayers.forEach((layer) => {
-        // desplaza la capa entera lentamente respecto al scroll
-        const rect = layer.getBoundingClientRect();
-        layer.style.transform = `translateY(${y * 0.18}px)`;
-      });
-      ticking = false;
+    function setCiclo(ciclo) {
+      cicloActual = ciclo;
+      document.getElementById('bill-mensual').classList.toggle('active', ciclo === 'mensual');
+      document.getElementById('bill-anual').classList.toggle('active', ciclo === 'anual');
+      pintarPrecios();
     }
-    window.addEventListener('scroll', () => {
-      if (!ticking) { requestAnimationFrame(parallax); ticking = true; }
-    }, { passive: true });
-
-    // ===== NAVBAR: sombra al bajar =====
-    const navEl = document.querySelector('nav');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 20) { navEl.style.boxShadow = '0 4px 24px rgba(0,0,10,0.4)'; }
-      else { navEl.style.boxShadow = 'none'; }
-    }, { passive: true });
 
     async function detectarRegion() {
-        try {
-            const res = await fetch('https://ipapi.co/json/');
-            const data = await res.json();
-            const country = data.country_code;
-            if (country === 'MX') {
-                setRegion('mx');
-            } else if (['ES', 'PT', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH'].includes(country)) {
-                setRegion('es');
-            } else {
-                setRegion('latam');
-            }
-        } catch {
-            setRegion('mx');
-        }
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        const country = data.country_code;
+        if (country === 'MX') regionActual = 'mx';
+        else if (['ES', 'PT', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH'].includes(country)) regionActual = 'es';
+        else regionActual = 'latam';
+      } catch {
+        regionActual = 'mx';
+      }
+      pintarPrecios();
     }
 
     detectarRegion();

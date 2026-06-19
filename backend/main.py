@@ -362,9 +362,74 @@ def get_me(current_user: Usuario = Depends(auth.get_current_user)):
         "email": current_user.email,
         "plan": get_plan(current_user),
         "suscripcion_activa": current_user.suscripcion_activa,
+        "fecha_inicio_suscripcion": current_user.fecha_inicio_suscripcion,
         "fecha_vencimiento": current_user.fecha_vencimiento,
-        "email_verificado": current_user.email_verificado
+        "email_verificado": current_user.email_verificado,
+        "tiene_suscripcion_mp": bool(current_user.preapproval_id),
     }
+
+
+@app.post("/cuenta/cambiar-password")
+def cambiar_password(data: dict, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    """Cambia la contraseña del usuario. Requiere la contraseña actual."""
+    actual = data.get("password_actual", "")
+    nueva = data.get("password_nueva", "")
+
+    # Verificar la contraseña actual
+    if not auth.verify_password(actual, current_user.password):
+        raise HTTPException(status_code=400, detail={"codigo": "password_incorrecta", "mensaje": "La contraseña actual no es correcta."})
+
+    # Validar la nueva contraseña (mismas reglas que el registro)
+    try:
+        seguridad.validar_password(nueva)
+    except Exception:
+        raise HTTPException(status_code=400, detail={"codigo": "password_invalida", "mensaje": "La nueva contraseña no cumple los requisitos mínimos."})
+
+    current_user.password = auth.hash_password(nueva)
+    db.commit()
+    return {"mensaje": "Contraseña actualizada correctamente."}
+
+
+@app.post("/suscripcion/cancelar")
+def cancelar_mi_suscripcion(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    """Cancela la suscripción activa del usuario en Mercado Pago y la pasa a gratuito."""
+    if not current_user.preapproval_id:
+        raise HTTPException(status_code=400, detail={"codigo": "sin_suscripcion", "mensaje": "No tienes una suscripción activa que cancelar."})
+
+    try:
+        pagos.cancelar_suscripcion(current_user.preapproval_id)
+    except ValueError:
+        raise HTTPException(status_code=502, detail={"codigo": "error_cancelar", "mensaje": "No se pudo cancelar la suscripción en este momento. Intenta más tarde o contáctanos."})
+
+    # Actualizar la cuenta a gratuito
+    current_user.suscripcion_activa = False
+    current_user.tipo_suscripcion = "gratuito"
+    current_user.preapproval_id = None
+    db.commit()
+    return {"mensaje": "Tu suscripción fue cancelada. Seguirás teniendo acceso hasta el final del periodo ya pagado."}
+
+
+@app.delete("/cuenta/eliminar")
+def eliminar_mi_cuenta(data: dict, current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    """Elimina la cuenta del usuario. Requiere confirmación con contraseña."""
+    password = data.get("password", "")
+    if not auth.verify_password(password, current_user.password):
+        raise HTTPException(status_code=400, detail={"codigo": "password_incorrecta", "mensaje": "Contraseña incorrecta. No se eliminó la cuenta."})
+
+    # Si tiene suscripción activa en MP, intentar cancelarla antes de borrar
+    if current_user.preapproval_id:
+        try:
+            pagos.cancelar_suscripcion(current_user.preapproval_id)
+        except Exception:
+            pass  # si falla, seguimos con el borrado igualmente
+
+    user_id = current_user.id
+    # Borrar datos asociados
+    db.query(Historial).filter(Historial.usuario_id == user_id).delete()
+    db.query(Conexion).filter(Conexion.usuario_id == user_id).delete()
+    db.query(Usuario).filter(Usuario.id == user_id).delete()
+    db.commit()
+    return {"mensaje": "Tu cuenta y todos tus datos fueron eliminados."}
 
 @app.delete("/historial")
 def borrar_historial(current_user: Usuario = Depends(auth.get_current_user), db: Session = Depends(get_db)):
@@ -469,11 +534,13 @@ async def webhook_mercadopago(request: Request, db: Session = Depends(get_db)):
             usuario.tipo_suscripcion = plan_detectado
         usuario.suscripcion_activa = True
         usuario.fecha_inicio_suscripcion = datetime.utcnow()
+        usuario.preapproval_id = preapproval_id  # guardamos el id para poder cancelar después
         db.commit()
     else:
         # paused / cancelled / etc. -> el usuario deja de tener plan de pago
         usuario.suscripcion_activa = False
         usuario.tipo_suscripcion = "gratuito"
+        usuario.preapproval_id = None
         db.commit()
 
     return {"status": "ok"}

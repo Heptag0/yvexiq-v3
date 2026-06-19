@@ -137,6 +137,9 @@
     .sidebar.open .sb-user-info { opacity: 1; }
     .sb-user-email { font-size: 12px; color: var(--text-dim); }
     .sb-user-plan { font-size: 10px; color: var(--violet-light); text-transform: uppercase; letter-spacing: 0.5px; }
+    .sb-upgrade { display: flex; align-items: center; gap: 12px; margin: 6px 8px; padding: 10px 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(147,51,234,0.9), rgba(192,38,211,0.9)); color: white; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(147,51,234,0.35); white-space: nowrap; overflow: hidden; }
+    .sb-upgrade:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(147,51,234,0.5); }
+    .sb-upgrade svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     /* ══════════════════════════════
        MAIN
@@ -407,6 +410,35 @@
     @keyframes wshimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
     .welcome-prompt { font-size:13px; color:var(--text-dim); text-align:center; margin:22px 0 12px; }
     @media (prefers-reduced-motion:reduce){ .welcome-skel{animation:none;} }
+
+    /* ══════════════════════════════
+       RESPONSIVE MÓVIL
+    ══════════════════════════════ */
+    @media (max-width: 600px) {
+      #sus-planes { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 820px) {
+      .sidebar {
+        position: fixed; top: 0; left: 0; height: 100vh;
+        width: var(--sb-w-open) !important;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+      }
+      .sidebar.open { transform: translateX(0); width: var(--sb-w-open) !important; }
+      .sidebar .sb-logo-text, .sidebar .sb-section-label, .sidebar .sb-item-label,
+      .sidebar .sb-hist-text, .sidebar .sb-user-info { opacity: 1 !important; }
+      .sb-backdrop {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        z-index: 99; backdrop-filter: blur(2px);
+      }
+      .sb-backdrop.show { display: block; }
+      .main { width: 100%; }
+      .mobile-menu-btn { display: flex !important; }
+      .header { padding: 12px 16px !important; }
+      #modal-soporte > div, #modal-suscripcion > div { width: 94% !important; padding: 24px 18px !important; }
+      .ai-explanation table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
   </style>
 </head>
 <body>
@@ -461,6 +493,14 @@
           <div class="sb-user-plan">Plan Básico</div>
         </div>
       </div>
+      <div class="sb-upgrade" id="btn-upgrade" onclick="abrirSuscripcion()" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span class="sb-item-label">Mejorar mi plan</span>
+      </div>
+      <div class="sb-item" onclick="window.location.href='/configuracion.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="sb-item-label">Configuración</span>
+      </div>
       <div class="sb-item" onclick="toggleSoporte()" id="btn-soporte">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span class="sb-item-label">Soporte</span>
@@ -498,18 +538,59 @@
         </div>
       </div>
 
-      <!-- Atención personalizada Enterprise -->
-      <div id="soporte-enterprise" style="display:flex; align-items:center; gap:12px; padding:14px 16px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; margin-bottom:24px; opacity:0.5; cursor:not-allowed;">
-        <span style="font-size:20px;">⭐</span>
-        <div>
-          <div style="font-size:14px; font-weight:600;">Atención personalizada <span style="background:linear-gradient(135deg,rgba(124,34,212,0.3),rgba(217,70,239,0.2)); border:1px solid rgba(217,70,239,0.3); border-radius:6px; padding:1px 7px; font-size:10px; color:#d946ef; margin-left:6px;">Enterprise</span></div>
-          <div style="font-size:12px; color:rgba(245,243,255,0.45);">Disponible en Plan Enterprise — Respuesta prioritaria</div>
-        </div>
-      </div>
-
       <a href="/contacto" style="display:block; text-align:center; color:rgba(245,243,255,0.4); font-size:13px; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#a855f7'" onmouseout="this.style.color='rgba(245,243,255,0.4)'">Ver todas las opciones de contacto →</a>
     </div>
   </div>
+
+  <!-- MODAL SUSCRIPCION -->
+  <div id="modal-suscripcion" style="display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div style="background:#0d0f28; border:1px solid rgba(147,51,234,0.25); border-radius:20px; padding:32px; max-width:680px; width:92%; max-height:88vh; overflow-y:auto; position:relative;">
+      <button onclick="cerrarSuscripcion()" style="position:absolute; top:16px; right:16px; background:transparent; border:none; color:rgba(245,243,255,0.4); font-size:18px; cursor:pointer;">✕</button>
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="font-size:26px; margin-bottom:8px;">⚡</div>
+        <h3 style="font-family:'Playfair Display',serif; font-size:24px; margin-bottom:8px;">Mejora tu plan</h3>
+        <p style="color:rgba(245,243,255,0.55); font-size:14px;">Más capacidad, más funciones, más control de tu negocio.</p>
+      </div>
+
+      <div style="display:flex; justify-content:center; gap:6px; margin-bottom:24px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:4px; width:fit-content; margin-left:auto; margin-right:auto;">
+        <button id="sus-mensual" onclick="susCiclo('mensual')" style="padding:8px 18px; border-radius:9px; font-size:13px; font-weight:600; border:none; cursor:pointer; background:linear-gradient(135deg,#9333ea,#c026d3); color:white; font-family:'DM Sans',sans-serif;">Mensual</button>
+        <button id="sus-anual" onclick="susCiclo('anual')" style="padding:8px 18px; border-radius:9px; font-size:13px; font-weight:600; border:none; cursor:pointer; background:transparent; color:rgba(245,243,255,0.4); font-family:'DM Sans',sans-serif;">Anual <span style="font-size:10px; background:rgba(40,200,64,0.15); color:#4ade80; padding:1px 6px; border-radius:8px;">-2 meses</span></button>
+      </div>
+
+      <div id="sus-planes" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div id="sus-card-basico" style="background:rgba(147,51,234,0.1); border:1px solid rgba(147,51,234,0.35); border-radius:16px; padding:22px;">
+          <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:rgba(245,243,255,0.4); margin-bottom:6px;">Básico</div>
+          <div style="font-family:'Playfair Display',serif; font-size:34px; font-weight:800; line-height:1;">$<span id="sus-precio-basico">199</span><span style="font-size:14px; font-weight:400; color:rgba(245,243,255,0.4);">/mes</span></div>
+          <div id="sus-anual-basico" style="font-size:11px; color:#4ade80; font-weight:600; min-height:14px; margin-top:4px;"></div>
+          <div style="display:flex; flex-direction:column; gap:7px; margin:18px 0;">
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ 20 profundos + 30 rápidos/día</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ 3 conexiones</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ Alertas por correo</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ Memoria y reportes</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ Soporte prioritario</div>
+          </div>
+          <button onclick="suscribir('basico')" style="width:100%; padding:12px; border-radius:11px; font-size:14px; font-weight:700; border:none; cursor:pointer; background:linear-gradient(135deg,#9333ea,#c026d3); color:white; font-family:'DM Sans',sans-serif;">Elegir Básico</button>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:22px;">
+          <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:rgba(245,243,255,0.4); margin-bottom:6px;">Pro</div>
+          <div style="font-family:'Playfair Display',serif; font-size:34px; font-weight:800; line-height:1;">$<span id="sus-precio-pro">389</span><span style="font-size:14px; font-weight:400; color:rgba(245,243,255,0.4);">/mes</span></div>
+          <div id="sus-anual-pro" style="font-size:11px; color:#4ade80; font-weight:600; min-height:14px; margin-top:4px;"></div>
+          <div style="display:flex; flex-direction:column; gap:7px; margin:18px 0;">
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ 50 profundos + 70 rápidos/día</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ 6 conexiones</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ Todo lo del Básico</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ Soporte VIP WhatsApp</div>
+            <div style="font-size:13px; color:rgba(245,243,255,0.7);">✓ Comparar tiendas, exportar</div>
+          </div>
+          <button onclick="suscribir('pro')" style="width:100%; padding:12px; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; background:transparent; border:1px solid rgba(147,51,234,0.4); color:#f5f3ff; font-family:'DM Sans',sans-serif;">Elegir Pro</button>
+        </div>
+      </div>
+      <p style="text-align:center; font-size:12px; color:rgba(245,243,255,0.35); margin-top:18px;">Pago seguro vía Mercado Pago. Cancela cuando quieras.</p>
+    </div>
+  </div>
+
+  <div class="sb-backdrop" id="sb-backdrop" onclick="toggleSidebar()"></div>
 
   <!-- MAIN -->
   <div class="main">
@@ -521,6 +602,9 @@
     <!-- Header -->
     <div class="header">
       <div class="header-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" style="display:none; align-items:center; justify-content:center; width:38px; height:38px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#f5f3ff; cursor:pointer;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div class="header-title">Panel de <span>inteligencia</span></div>
       </div>
       <div class="header-right">
@@ -535,7 +619,7 @@
             border-radius:14px; padding:8px; min-width:220px;
             box-shadow:0 8px 32px rgba(0,0,10,0.6); z-index:200;">
         </div>
-        <div class="header-btn" title="Configuración">
+        <div class="header-btn" title="Configuración" onclick="window.location.href='/configuracion.html'" style="cursor:pointer;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         </div>
       </div>
@@ -638,7 +722,10 @@
 
     // Sidebar toggle
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('open');
+      const backdrop = document.getElementById('sb-backdrop');
+      if (backdrop) backdrop.classList.toggle('show', sb.classList.contains('open'));
     }
 
     // Auto-resize textarea
@@ -1118,6 +1205,18 @@
             };
             document.querySelector('.sb-user-plan').textContent = planTextos[data.plan] || data.plan;
 
+            const btnUpgrade = document.getElementById('btn-upgrade');
+            if (btnUpgrade) {
+                if (data.plan === 'pro' || data.plan === 'enterprise') {
+                    btnUpgrade.style.display = 'none';
+                } else {
+                    btnUpgrade.style.display = 'flex';
+                    const spanUp = btnUpgrade.querySelector('span');
+                    if (spanUp) spanUp.textContent = (data.plan === 'basico') ? 'Mejorar a Pro' : 'Mejorar mi plan';
+                }
+            }
+            window.planActual = data.plan;
+
 	    // Mostrar banner si email no verificado
             if (!data.email_verificado) { mostrarBannerVerificacion(); }
 
@@ -1129,13 +1228,6 @@
                 waEl.style.borderColor = 'rgba(37,211,102,0.25)';
                 document.getElementById('soporte-wa-texto').textContent = 'Soporte activo · Respuestas automáticas 24/7';
                 waEl.onclick = () => window.open('https://wa.me/TU_NUMERO_AQUI', '_blank');
-            }
-            if (data.plan === 'enterprise') {
-                const entEl = document.getElementById('soporte-enterprise');
-                entEl.style.opacity = '1';
-                entEl.style.cursor = 'pointer';
-                entEl.style.borderColor = 'rgba(217,70,239,0.25)';
-                entEl.onclick = () => window.open('https://wa.me/TU_NUMERO_AQUI?text=Hola%2C%20soy%20usuario%20Enterprise%20de%20YvexIQ', '_blank');
             }
         } catch { console.error('Error cargando usuario'); }
     }
@@ -1180,6 +1272,75 @@ async function reenviarVerificacion() {
     const res = await fetchConAuth(API + '/reenviar-verificacion', { method: 'POST' });
     if (res && res.ok) alert('Email reenviado. Revisa tu bandeja de entrada.');
 }
+
+// ===== SUSCRIPCIÓN / PAGOS =====
+let susCicloActual = 'mensual';
+const SUS_PRECIOS = {
+    mensual: { basico: '199', pro: '389', anualBasico: '', anualPro: '' },
+    anual:   { basico: '149', pro: '349', anualBasico: 'Facturado $1,788/año', anualPro: 'Facturado $4,188/año' }
+};
+function abrirSuscripcion() {
+    document.getElementById('modal-suscripcion').style.display = 'flex';
+    // Si el usuario ya es básico, ocultar la tarjeta de Básico (solo puede mejorar a Pro)
+    const cardBasico = document.getElementById('sus-card-basico');
+    const grid = document.getElementById('sus-planes');
+    if (window.planActual === 'basico') {
+        cardBasico.style.display = 'none';
+        grid.style.gridTemplateColumns = '1fr';
+        grid.style.maxWidth = '340px';
+        grid.style.marginLeft = 'auto';
+        grid.style.marginRight = 'auto';
+    } else {
+        cardBasico.style.display = 'block';
+        grid.style.gridTemplateColumns = '1fr 1fr';
+        grid.style.maxWidth = '';
+    }
+    pintarSusPrecios();
+}
+function cerrarSuscripcion() {
+    document.getElementById('modal-suscripcion').style.display = 'none';
+}
+function susCiclo(ciclo) {
+    susCicloActual = ciclo;
+    document.getElementById('sus-mensual').style.background = (ciclo === 'mensual') ? 'linear-gradient(135deg,#9333ea,#c026d3)' : 'transparent';
+    document.getElementById('sus-mensual').style.color = (ciclo === 'mensual') ? 'white' : 'rgba(245,243,255,0.4)';
+    document.getElementById('sus-anual').style.background = (ciclo === 'anual') ? 'linear-gradient(135deg,#9333ea,#c026d3)' : 'transparent';
+    document.getElementById('sus-anual').style.color = (ciclo === 'anual') ? 'white' : 'rgba(245,243,255,0.4)';
+    pintarSusPrecios();
+}
+function pintarSusPrecios() {
+    const p = SUS_PRECIOS[susCicloActual];
+    document.getElementById('sus-precio-basico').textContent = p.basico;
+    document.getElementById('sus-precio-pro').textContent = p.pro;
+    document.getElementById('sus-anual-basico').textContent = p.anualBasico;
+    document.getElementById('sus-anual-pro').textContent = p.anualPro;
+}
+async function suscribir(plan) {
+    try {
+        const res = await fetchConAuth(API + '/suscripcion/crear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan: plan, periodo: susCicloActual })
+        });
+        if (!res || !res.ok) {
+            let msg = 'No se pudo iniciar el pago. Intenta de nuevo más tarde.';
+            try { const d = await res.json(); if (d.detail && d.detail.mensaje) msg = d.detail.mensaje; } catch {}
+            alert(msg);
+            return;
+        }
+        const data = await res.json();
+        if (data.init_point) {
+            window.location.href = data.init_point;
+        } else {
+            alert('No se pudo obtener el enlace de pago. Intenta de nuevo.');
+        }
+    } catch {
+        alert('Error de conexión. Intenta de nuevo más tarde.');
+    }
+}
+document.getElementById('modal-suscripcion').addEventListener('click', function(e) {
+    if (e.target === this) cerrarSuscripcion();
+});
 
   </script>
 </body>

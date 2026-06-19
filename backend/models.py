@@ -17,6 +17,7 @@ class Usuario(Base):
     email_verificado = Column(Boolean, default=False)
     token_verificacion = Column(String(64), nullable=True)
     fecha_token_verificacion = Column(DateTime, nullable=True)
+    preapproval_id = Column(String(64), nullable=True)
 class Conexion(Base):
     __tablename__ = "conexiones"
     id = Column(Integer, primary_key=True, index=True)

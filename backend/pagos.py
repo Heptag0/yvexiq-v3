@@ -121,3 +121,22 @@ def plan_desde_reason(reason: str):
     plan = "pro" if "pro" in r else ("basico" if ("basico" in r or "básico" in r) else None)
     periodo = "anual" if "anual" in r else ("mensual" if "mensual" in r else None)
     return (plan, periodo)
+
+
+def cancelar_suscripcion(preapproval_id: str):
+    """
+    Cancela una suscripción en Mercado Pago (status -> cancelled).
+    Devuelve True si quedó cancelada, o lanza ValueError si falla.
+    """
+    if not MP_ACCESS_TOKEN:
+        raise ValueError("Mercado Pago no está configurado.")
+    resp = requests.put(
+        f"{MP_API}/preapproval/{preapproval_id}",
+        json={"status": "cancelled"},
+        headers=_headers(),
+        timeout=20,
+    )
+    if resp.status_code not in (200, 201):
+        raise ValueError(f"Error al cancelar suscripción: {resp.status_code} {resp.text}")
+    data = resp.json()
+    return data.get("status") == "cancelled"
